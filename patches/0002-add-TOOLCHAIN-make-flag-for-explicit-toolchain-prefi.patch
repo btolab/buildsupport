@@ -1,7 +1,7 @@
-From 460cb82b92a96dd569b9ffd6967fbbafb5dcad0c Mon Sep 17 00:00:00 2001
+From 9e0e7f56c72d89cdce09f05f739b375bc4293465 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 21:05:34 -0600
-Subject: [PATCH 02/11] add TOOLCHAIN make flag for explicit toolchain prefix
+Subject: [PATCH 2/9] add TOOLCHAIN make flag for explicit toolchain prefix
  (cross compiling)
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
@@ -13,18 +13,18 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  4 files changed, 46 insertions(+), 26 deletions(-)
 
 diff --git a/makefile b/makefile
-index 4cca49e..29c260f 100644
+index e3bee8f..974e38c 100644
 --- a/makefile
 +++ b/makefile
-@@ -71,6 +71,7 @@
- 
+@@ -72,6 +72,7 @@
+ # BUILDDIR = build
  # TARGETOS = windows
  # CROSS_BUILD = 1
 +# TOOLCHAIN =
  # OVERRIDE_CC = cc
  # OVERRIDE_CXX = c++
  # OVERRIDE_LD = ld
-@@ -239,9 +240,9 @@ WINDRES  := $(MINGW32)/bin/windres
+@@ -250,9 +251,9 @@ WINDRES  := $(MINGW32)/bin/windres
  endif
  else
  ifeq ($(ARCHITECTURE),_x64)
@@ -36,7 +36,7 @@ index 4cca49e..29c260f 100644
  endif
  endif
  
-@@ -371,6 +372,9 @@ endif
+@@ -386,6 +387,9 @@ endif
  
  PARAMS+= --distro=$(DISTRO)
  
@@ -46,9 +46,9 @@ index 4cca49e..29c260f 100644
  ifdef OVERRIDE_CC
  PARAMS += --CC='$(OVERRIDE_CC)'
  ifndef CROSS_BUILD
-@@ -716,12 +720,12 @@ CLANG_VERSION    := $(shell %CLANG%\bin\clang --version 2> NUL| head -n 1 | sed
- PYTHON_AVAILABLE := $(shell $(PYTHON) --version > NUL 2>&1 && echo python)
- CHECK_CLANG      :=
+@@ -758,12 +762,12 @@ MSBUILD_SOLUTION := $(TARGET)$(SUBTARGET).sln
+ endif
+ endif
  else
 -GCC_VERSION      := $(shell $(subst @,,$(CC)) -dumpversion 2> /dev/null)
 +GCC_VERSION      := $(shell $(TOOLCHAIN)$(subst @,,$(CC)) -dumpversion 2> /dev/null)
@@ -63,10 +63,10 @@ index 4cca49e..29c260f 100644
  
  ifeq ($(TARGETOS),macosx)
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index 475c110..5e1d078 100644
+index 7fd1378..b7d47b4 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
-@@ -174,6 +174,11 @@ newoption {
+@@ -179,6 +179,11 @@ newoption {
  }
  
  newoption {
@@ -78,7 +78,7 @@ index 475c110..5e1d078 100644
  	trigger = "PROFILE",
  	description = "Enable profiling.",
  }
-@@ -416,6 +421,10 @@ if(_OPTIONS["USE_BGFX"]~=nil) then
+@@ -421,6 +426,10 @@ if(_OPTIONS["USE_BGFX"]~=nil) then
  	USE_BGFX = tonumber(_OPTIONS["USE_BGFX"])
  end
  
@@ -90,10 +90,10 @@ index 475c110..5e1d078 100644
  
  if (_OPTIONS["target"] == nil) then return false end
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index c54a504..5811ca5 100644
+index da0a590..8e0c412 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
-@@ -95,7 +95,7 @@ end
+@@ -106,7 +106,7 @@ end
  
  function sdlconfigcmd()
  	if not _OPTIONS["SDL_INSTALL_ROOT"] then
@@ -103,7 +103,7 @@ index c54a504..5811ca5 100644
  		return path.join(_OPTIONS["SDL_INSTALL_ROOT"],"bin",_OPTIONS["SDL_LIBVER"]) .. "-config"
  	end
 diff --git a/scripts/toolchain.lua b/scripts/toolchain.lua
-index 0871205..825d427 100644
+index e6e2e0e..1c056ba 100644
 --- a/scripts/toolchain.lua
 +++ b/scripts/toolchain.lua
 @@ -4,6 +4,11 @@
@@ -118,7 +118,7 @@ index 0871205..825d427 100644
  
  newoption {
  	trigger = "gcc",
-@@ -193,15 +198,18 @@ function toolchain(_buildDir, _subDir)
+@@ -195,15 +200,18 @@ function toolchain(_buildDir, _subDir)
  			if not os.getenv("MINGW32") or not os.getenv("MINGW32") then
  				print("Set MINGW32 envrionment variable.")
  			end
@@ -141,7 +141,7 @@ index 0871205..825d427 100644
  			end
  			location (_buildDir .. "projects/" .. _subDir .. "/".. _ACTION .. "-mingw32-gcc")
  		end
-@@ -210,20 +218,22 @@ function toolchain(_buildDir, _subDir)
+@@ -212,20 +220,22 @@ function toolchain(_buildDir, _subDir)
  			if not os.getenv("MINGW64") or not os.getenv("MINGW64") then
  				print("Set MINGW64 envrionment variable.")
  			end
@@ -169,7 +169,7 @@ index 0871205..825d427 100644
  		if "mingw-clang" == _OPTIONS["gcc"] then
  			premake.gcc.cc   = "$(CLANG)/bin/clang"
  			premake.gcc.cxx  = "$(CLANG)/bin/clang++"
-@@ -272,18 +282,17 @@ function toolchain(_buildDir, _subDir)
+@@ -274,18 +284,17 @@ function toolchain(_buildDir, _subDir)
  
  		if "osx" == _OPTIONS["gcc"] then
  			if os.is("linux") then
@@ -194,7 +194,7 @@ index 0871205..825d427 100644
  			location (_buildDir .. "projects/" .. _subDir .. "/".. _ACTION .. "-osx-clang")
  		end
  
-@@ -887,7 +896,6 @@ function toolchain(_buildDir, _subDir)
+@@ -897,7 +906,6 @@ function toolchain(_buildDir, _subDir)
  end
  
  function strip()
@@ -202,7 +202,7 @@ index 0871205..825d427 100644
  	configuration { "android-arm", "Release" }
  		postbuildcommands {
  			"$(SILENT) echo Stripping symbols.",
-@@ -915,13 +923,12 @@ function strip()
+@@ -925,13 +933,12 @@ function strip()
  	configuration { "mingw*", "x64", "Release" }
  		postbuildcommands {
  			"$(SILENT) echo Stripping symbols.",

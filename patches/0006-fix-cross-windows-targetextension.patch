@@ -1,7 +1,7 @@
-From abd715179bc922e08386dc7668c6c33e6050048c Mon Sep 17 00:00:00 2001
+From 395519001da1f1c78cd00d77c3d5bf718154b4ad Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Tue, 3 Nov 2015 00:29:49 -0600
-Subject: [PATCH 07/11] fix cross windows targetextension
+Subject: [PATCH 6/9] fix cross windows targetextension
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -10,10 +10,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  2 files changed, 85 insertions(+)
 
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index 9eb2635..f81a0a5 100644
+index c531236..6964c8e 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
-@@ -492,6 +492,11 @@ if _OPTIONS["with-tools"] then
+@@ -534,6 +534,11 @@ if _OPTIONS["with-tools"] then
  			}
  		end
  
@@ -26,11 +26,11 @@ index 9eb2635..f81a0a5 100644
  end
  
 diff --git a/scripts/src/tools.lua b/scripts/src/tools.lua
-index f48225d..dc28f23 100644
+index c3ed265..421f5cc 100644
 --- a/scripts/src/tools.lua
 +++ b/scripts/src/tools.lua
-@@ -46,6 +46,11 @@ files {
- 	MAME_DIR .. "src/tools/romcmp.c",
+@@ -50,6 +50,11 @@ files {
+ 	MAME_DIR .. "src/tools/romcmp.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -42,7 +42,7 @@ index f48225d..dc28f23 100644
  
  --------------------------------------------------
 @@ -106,6 +111,11 @@ files {
- 	MAME_DIR .. "src/version.c",
+ 	MAME_DIR .. "src/version.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -53,8 +53,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -153,6 +163,11 @@ files {
- 	MAME_DIR .. "src/tools/jedutil.c",
+@@ -149,6 +159,11 @@ files {
+ 	MAME_DIR .. "src/tools/jedutil.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -65,8 +65,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -215,6 +230,11 @@ files {
- 	MAME_DIR .. "src/tools/unidasm.c",
+@@ -207,6 +222,11 @@ files {
+ 	MAME_DIR .. "src/emu/emucore.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -77,8 +77,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -274,6 +294,11 @@ files {
- 	MAME_DIR .. "src/tools/ldresample.c",
+@@ -262,6 +282,11 @@ files {
+ 	MAME_DIR .. "src/tools/ldresample.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -89,8 +89,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -333,6 +358,11 @@ files {
- 	MAME_DIR .. "src/tools/ldverify.c",
+@@ -317,6 +342,11 @@ files {
+ 	MAME_DIR .. "src/tools/ldverify.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -101,8 +101,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -380,6 +410,11 @@ files {
- 	MAME_DIR .. "src/tools/regrep.c",
+@@ -360,6 +390,11 @@ files {
+ 	MAME_DIR .. "src/tools/regrep.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -113,8 +113,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -427,6 +462,11 @@ files {
- 	MAME_DIR .. "src/tools/srcclean.c",
+@@ -403,6 +438,11 @@ files {
+ 	MAME_DIR .. "src/tools/srcclean.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -125,8 +125,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -474,6 +514,11 @@ files {
- 	MAME_DIR .. "src/tools/src2html.c",
+@@ -446,6 +486,11 @@ files {
+ 	MAME_DIR .. "src/tools/src2html.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -137,8 +137,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -532,6 +577,11 @@ files {
- 	MAME_DIR .. "src/tools/split.c",
+@@ -500,6 +545,11 @@ files {
+ 	MAME_DIR .. "src/tools/split.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -149,8 +149,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -579,6 +629,11 @@ files {
- 	MAME_DIR .. "src/tools/pngcmp.c",
+@@ -543,6 +593,11 @@ files {
+ 	MAME_DIR .. "src/tools/pngcmp.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -161,8 +161,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -639,6 +694,11 @@ files {
- 	MAME_DIR .. "src/lib/netlist/prg/nltool.c",
+@@ -599,6 +654,11 @@ files {
+ 	MAME_DIR .. "src/lib/netlist/prg/nltool.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -173,8 +173,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -677,6 +737,11 @@ files {
-   MAME_DIR .. "src/lib/netlist/prg/nlwav.c",
+@@ -633,6 +693,11 @@ files {
+   MAME_DIR .. "src/lib/netlist/prg/nlwav.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -185,8 +185,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -737,6 +802,11 @@ files {
- 	MAME_DIR .. "src/tools/castool.c",
+@@ -689,6 +754,11 @@ files {
+ 	MAME_DIR .. "src/tools/castool.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -197,8 +197,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -798,6 +868,11 @@ files {
- 	MAME_DIR .. "src/tools/floptool.c",
+@@ -746,6 +816,11 @@ files {
+ 	MAME_DIR .. "src/tools/floptool.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }
@@ -209,8 +209,8 @@ index f48225d..dc28f23 100644
  strip()
  
  --------------------------------------------------
-@@ -896,4 +971,9 @@ files {
- 	MAME_DIR .. "src/tools/imgtool/modules/hp48.c",
+@@ -852,4 +927,9 @@ files {
+ 	MAME_DIR .. "src/tools/imgtool/modules/hp48.cpp",
  }
  
 +configuration { "mingw*" or "vs*" }

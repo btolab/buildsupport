@@ -1,18 +1,19 @@
-From 473a452ea8d55a347ec1e8099ff4cf4cae40b7d3 Mon Sep 17 00:00:00 2001
+From 2b47a5003f31a653221eb78207064f1277e68838 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 29 Jul 2015 00:55:26 -0500
-Subject: [PATCH 11/11] make sdl osd the same size as directx
+Subject: [PATCH 9/9] make sdl osd the same size as directx
 
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
- src/osd/modules/render/drawogl.c | 4 ----
- src/osd/modules/render/drawsdl.c | 2 +-
+ src/osd/modules/render/drawogl.cpp | 4 ----
+ src/osd/modules/render/drawsdl.cpp | 2 +-
  2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/src/osd/modules/render/drawogl.c b/src/osd/modules/render/drawogl.c
-index 5a139c4..9736c32 100644
---- a/src/osd/modules/render/drawogl.c
-+++ b/src/osd/modules/render/drawogl.c
-@@ -543,11 +543,7 @@ public:
+diff --git a/src/osd/modules/render/drawogl.cpp b/src/osd/modules/render/drawogl.cpp
+index de04e04..6da9d91 100644
+--- a/src/osd/modules/render/drawogl.cpp
++++ b/src/osd/modules/render/drawogl.cpp
+@@ -542,11 +542,7 @@ public:
  	/* virtual */ void destroy();
  	/* virtual */ render_primitive_list *get_primitives()
  	{
@@ -24,10 +25,10 @@ index 5a139c4..9736c32 100644
  		if (nd != m_blit_dim)
  		{
  			m_blit_dim = nd;
-diff --git a/src/osd/modules/render/drawsdl.c b/src/osd/modules/render/drawsdl.c
+diff --git a/src/osd/modules/render/drawsdl.cpp b/src/osd/modules/render/drawsdl.cpp
 index afd2057..ed935b1 100644
---- a/src/osd/modules/render/drawsdl.c
-+++ b/src/osd/modules/render/drawsdl.c
+--- a/src/osd/modules/render/drawsdl.cpp
++++ b/src/osd/modules/render/drawsdl.cpp
 @@ -75,7 +75,7 @@ public:
  	/* virtual */ void destroy();
  	/* virtual */ render_primitive_list *get_primitives()

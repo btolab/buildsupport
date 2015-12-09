@@ -1,8 +1,8 @@
-From 66af183c479e1b7165c893852e47d926b894be55 Mon Sep 17 00:00:00 2001
+From 67780febddc43c6a6652b35defbba7c1aef4f6be Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
-Date: Mon, 2 Nov 2015 21:16:00 -0600
-Subject: [PATCH 01/11] refactor MACOSX_USE_LIBSDL to USE_LIBSDL, adding linux
- and windows support
+Date: Wed, 9 Dec 2015 09:41:34 -0600
+Subject: [PATCH 1/9] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows and
+ linux static library support
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -12,7 +12,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  3 files changed, 37 insertions(+), 25 deletions(-)
 
 diff --git a/makefile b/makefile
-index a398238..4cca49e 100644
+index 9cc7227..e3bee8f 100644
 --- a/makefile
 +++ b/makefile
 @@ -66,7 +66,7 @@
@@ -23,8 +23,8 @@ index a398238..4cca49e 100644
 +# USE_LIBSDL = 1
  # CYGWIN_BUILD = 1
  
- # TARGETOS = windows
-@@ -572,8 +572,8 @@ ifdef SDL_FRAMEWORK_PATH
+ # BUILDDIR = build
+@@ -591,8 +591,8 @@ ifdef SDL_FRAMEWORK_PATH
  PARAMS += --SDL_FRAMEWORK_PATH='$(SDL_FRAMEWORK_PATH)'
  endif
  
@@ -36,10 +36,10 @@ index a398238..4cca49e 100644
  
  ifdef LDOPTS
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index 2922c8c..c54a504 100644
+index 4cb31f3..da0a590 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
-@@ -46,14 +46,20 @@ function maintargetosdoptions(_target,_subtarget)
+@@ -54,14 +54,20 @@ function maintargetosdoptions(_target,_subtarget)
  	end
  
  	if _OPTIONS["targetos"]=="windows" then
@@ -65,9 +65,9 @@ index 2922c8c..c54a504 100644
 +			addlibfromstring(str)
 +			addoptionsfromstring(str)
  		end
- 
- 		configuration { "mingw*-gcc" }
-@@ -181,16 +187,16 @@ if not _OPTIONS["SDL_FRAMEWORK_PATH"] then
+ 		links {
+ 			"psapi",
+@@ -192,16 +198,16 @@ if not _OPTIONS["SDL_FRAMEWORK_PATH"] then
  end
  
  newoption {
@@ -89,7 +89,7 @@ index 2922c8c..c54a504 100644
  end
  
  
-@@ -233,7 +239,7 @@ if BASE_TARGETOS=="unix" then
+@@ -244,7 +250,7 @@ if BASE_TARGETOS=="unix" then
  		links {
  			"Cocoa.framework",
  		}
@@ -98,7 +98,7 @@ index 2922c8c..c54a504 100644
  			linkoptions {
  				"-F" .. _OPTIONS["SDL_FRAMEWORK_PATH"],
  			}
-@@ -247,7 +253,7 @@ if BASE_TARGETOS=="unix" then
+@@ -258,7 +264,7 @@ if BASE_TARGETOS=="unix" then
  				}
  			end
  		else
@@ -107,7 +107,7 @@ index 2922c8c..c54a504 100644
  			addlibfromstring(str)
  			addoptionsfromstring(str)
  		end
-@@ -458,14 +464,20 @@ if _OPTIONS["with-tools"] then
+@@ -497,14 +503,20 @@ if _OPTIONS["with-tools"] then
  		}
  
  		if _OPTIONS["targetos"] == "windows" then
@@ -133,8 +133,8 @@ index 2922c8c..c54a504 100644
 +				addlibfromstring(str)
 +				addoptionsfromstring(str)
  			end
- 			linkoptions{
- 				"-municode",
+ 			links {
+ 				"psapi",
 diff --git a/scripts/src/osd/sdl_cfg.lua b/scripts/src/osd/sdl_cfg.lua
 index 878a5a2..bb1a286 100644
 --- a/scripts/src/osd/sdl_cfg.lua

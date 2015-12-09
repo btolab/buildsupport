@@ -50,7 +50,7 @@ for BUILD in $(ls build/*/bin | grep :\$ | sed 's/.*\/\(.*\)\/bin:$/\1/'); do
 			find . -executable -type f -exec cp "{}" ${PACKAGEDIR} \;
 			popd
 			cp ../build/whatsnew/whatsnew_${RELEASE}.txt ${PACKAGEDIR}/whatsnew.txt
-			cp -r docs hash web nl_examples ${PACKAGEDIR}/
+			cp -r docs hash ${PACKAGEDIR}/
 			7za x ../build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
 			echo Packaging ${BUILD} ${ARCH} ${TYPE}
 			pushd ${PACKAGEDIR}
