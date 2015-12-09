@@ -1,0 +1,222 @@
+From 02c35ec9b8fcb90f4225badb5e2bd9ce1ad91c07 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Mon, 2 Nov 2015 21:08:15 -0600
+Subject: [PATCH 05/11] check STRIP_SYMBOLS in strip function, add strip
+ support for osx builds
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ scripts/genie.lua       |  5 +----
+ scripts/src/osd/sdl.lua |  4 ++++
+ scripts/src/tools.lua   | 31 +++++++++++++++++++++++++++++++
+ scripts/toolchain.lua   |  8 ++++++++
+ 4 files changed, 44 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/genie.lua b/scripts/genie.lua
+index 5e1d078..c82be2f 100644
+--- a/scripts/genie.lua
++++ b/scripts/genie.lua
+@@ -1340,10 +1340,7 @@ else
+ 	end
+ end
+ mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])
+-
+-if (_OPTIONS["STRIP_SYMBOLS"]=="1") then
+-	strip()
+-end
++strip()
+ 
+ if _OPTIONS["with-tools"] then
+ 	group "tools"
+diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
+index 5811ca5..9eb2635 100644
+--- a/scripts/src/osd/sdl.lua
++++ b/scripts/src/osd/sdl.lua
+@@ -491,6 +491,8 @@ if _OPTIONS["with-tools"] then
+ 				MAME_DIR .. "src/osd/sdl/SDLMain_tmpl.m",
+ 			}
+ 		end
++
++		strip()
+ end
+ 
+ 
+@@ -536,4 +538,6 @@ if _OPTIONS["targetos"] == "macosx" and _OPTIONS["with-tools"] then
+ 		files {
+ 			MAME_DIR .. "src/osd/sdl/aueffectutil.m",
+ 		}
++
++		strip()
+ end
+diff --git a/scripts/src/tools.lua b/scripts/src/tools.lua
+index fc095e3..f48225d 100644
+--- a/scripts/src/tools.lua
++++ b/scripts/src/tools.lua
+@@ -46,6 +46,8 @@ files {
+ 	MAME_DIR .. "src/tools/romcmp.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- chdman
+ --------------------------------------------------
+@@ -104,6 +106,8 @@ files {
+ 	MAME_DIR .. "src/version.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- jedutil
+ --------------------------------------------------
+@@ -149,6 +153,8 @@ files {
+ 	MAME_DIR .. "src/tools/jedutil.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- unidasm
+ --------------------------------------------------
+@@ -209,6 +215,7 @@ files {
+ 	MAME_DIR .. "src/tools/unidasm.c",
+ }
+ 
++strip()
+ 
+ --------------------------------------------------
+ -- ldresample
+@@ -267,6 +274,8 @@ files {
+ 	MAME_DIR .. "src/tools/ldresample.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- ldverify
+ --------------------------------------------------
+@@ -324,6 +333,8 @@ files {
+ 	MAME_DIR .. "src/tools/ldverify.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- regrep
+ --------------------------------------------------
+@@ -369,6 +380,8 @@ files {
+ 	MAME_DIR .. "src/tools/regrep.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- srcclean
+ ---------------------------------------------------
+@@ -414,6 +427,8 @@ files {
+ 	MAME_DIR .. "src/tools/srcclean.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- src2html
+ --------------------------------------------------
+@@ -459,6 +474,8 @@ files {
+ 	MAME_DIR .. "src/tools/src2html.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- split
+ --------------------------------------------------
+@@ -515,6 +532,8 @@ files {
+ 	MAME_DIR .. "src/tools/split.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- pngcmp
+ --------------------------------------------------
+@@ -560,6 +579,8 @@ files {
+ 	MAME_DIR .. "src/tools/pngcmp.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- nltool
+ --------------------------------------------------
+@@ -618,6 +639,8 @@ files {
+ 	MAME_DIR .. "src/lib/netlist/prg/nltool.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- nlwav
+ --------------------------------------------------
+@@ -654,6 +677,8 @@ files {
+   MAME_DIR .. "src/lib/netlist/prg/nlwav.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- castool
+ --------------------------------------------------
+@@ -712,6 +737,8 @@ files {
+ 	MAME_DIR .. "src/tools/castool.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- floptool
+ --------------------------------------------------
+@@ -771,6 +798,8 @@ files {
+ 	MAME_DIR .. "src/tools/floptool.c",
+ }
+ 
++strip()
++
+ --------------------------------------------------
+ -- imgtool
+ --------------------------------------------------
+@@ -866,3 +895,5 @@ files {
+ 	MAME_DIR .. "src/tools/imgtool/modules/bml3.c",
+ 	MAME_DIR .. "src/tools/imgtool/modules/hp48.c",
+ }
++
++strip()
+diff --git a/scripts/toolchain.lua b/scripts/toolchain.lua
+index 825d427..b2205d8 100644
+--- a/scripts/toolchain.lua
++++ b/scripts/toolchain.lua
+@@ -896,6 +896,13 @@ function toolchain(_buildDir, _subDir)
+ end
+ 
+ function strip()
++	if not _OPTIONS["STRIP_SYMBOLS"] or _OPTIONS["STRIP_SYMBOLS"]=="1" then
++	configuration { "osx-*", "Release" }
++		postbuildcommands {
++			"$(SILENT) echo Stripping symbols.",
++			"$(SILENT) " .. (_OPTIONS['TOOLCHAIN'] and toolchainPrefix) .. "strip \"$(TARGET)\"",
++		}
++
+ 	configuration { "android-arm", "Release" }
+ 		postbuildcommands {
+ 			"$(SILENT) echo Stripping symbols.",
+@@ -957,5 +964,6 @@ function strip()
+ 		}
+ 
+ 	configuration {} -- reset configuration
++	end
+ end
+ 
+-- 
+2.4.3
+

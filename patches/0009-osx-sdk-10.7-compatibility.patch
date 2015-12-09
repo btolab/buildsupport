@@ -1,0 +1,32 @@
+From fdafd68b70d3b01eddd9719f3dfadb1292388c99 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Tue, 3 Nov 2015 02:50:27 -0600
+Subject: [PATCH 09/11] osx sdk 10.7 compatibility
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ 3rdparty/bx/include/bx/os.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/3rdparty/bx/include/bx/os.h b/3rdparty/bx/include/bx/os.h
+index e188d57..26daa7f 100644
+--- a/3rdparty/bx/include/bx/os.h
++++ b/3rdparty/bx/include/bx/os.h
+@@ -133,11 +133,11 @@ namespace bx
+ 			: 0
+ 			;
+ #elif BX_PLATFORM_OSX
+-		mach_task_basic_info info;
+-		mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
++		task_basic_info info;
++		mach_msg_type_number_t infoCount = TASK_BASIC_INFO_COUNT;
+ 
+ 		int result = task_info(mach_task_self()
+-				, MACH_TASK_BASIC_INFO
++				, TASK_BASIC_INFO
+ 				, (task_info_t)&info
+ 				, &infoCount
+ 				);
+-- 
+2.4.3
+

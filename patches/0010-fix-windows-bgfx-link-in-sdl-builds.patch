@@ -1,0 +1,28 @@
+From 2f21d4e7f5fd1749f5defbaf1715ec3ed84d84fb Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Tue, 3 Nov 2015 08:53:15 -0600
+Subject: [PATCH 10/11] fix windows bgfx link in sdl builds
+
+---
+ scripts/src/osd/sdl.lua | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
+index f81a0a5..3bca9ed 100644
+--- a/scripts/src/osd/sdl.lua
++++ b/scripts/src/osd/sdl.lua
+@@ -88,6 +88,11 @@ function maintargetosdoptions(_target,_subtarget)
+ 
+ 	configuration { "mingw*" or "vs*" }
+ 		targetprefix "sdl"
++		if USE_BGFX == 1 then
++			links {
++				"psapi"
++			}
++		end
+ 
+ 	configuration { }
+ end
+-- 
+2.4.3
+

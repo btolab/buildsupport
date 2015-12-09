@@ -1,0 +1,26 @@
+From 0c06363d21a9849ce7ca7cca90dfb5abc9acdbd1 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Mon, 2 Nov 2015 22:07:00 -0600
+Subject: [PATCH 06/11] bgfx dxsdk header mingw 5.2 compatibility
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ 3rdparty/bgfx/3rdparty/dxsdk/include/dxgitype.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/3rdparty/bgfx/3rdparty/dxsdk/include/dxgitype.h b/3rdparty/bgfx/3rdparty/dxsdk/include/dxgitype.h
+index 28b706f..8cb92ee 100644
+--- a/3rdparty/bgfx/3rdparty/dxsdk/include/dxgitype.h
++++ b/3rdparty/bgfx/3rdparty/dxsdk/include/dxgitype.h
+@@ -10,7 +10,7 @@
+ #define MAKE_DXGI_HRESULT(code) MAKE_HRESULT(1, _FACDXGI, code)
+ #define MAKE_DXGI_STATUS(code)  MAKE_HRESULT(0, _FACDXGI, code)
+ 
+-#if defined(__MINGW32__) || !defined(DXGI_ERROR_INVALID_CALL)
++#if !defined(DXGI_ERROR_INVALID_CALL)
+ #	define DXGI_STATUS_OCCLUDED                     MAKE_DXGI_STATUS(1)
+ #	define DXGI_STATUS_CLIPPED                      MAKE_DXGI_STATUS(2)
+ #	define DXGI_STATUS_NO_REDIRECTION               MAKE_DXGI_STATUS(4)
+-- 
+2.4.3
+

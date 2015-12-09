@@ -1,0 +1,224 @@
+From abd715179bc922e08386dc7668c6c33e6050048c Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Tue, 3 Nov 2015 00:29:49 -0600
+Subject: [PATCH 07/11] fix cross windows targetextension
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ scripts/src/osd/sdl.lua |  5 ++++
+ scripts/src/tools.lua   | 80 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
+
+diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
+index 9eb2635..f81a0a5 100644
+--- a/scripts/src/osd/sdl.lua
++++ b/scripts/src/osd/sdl.lua
+@@ -492,6 +492,11 @@ if _OPTIONS["with-tools"] then
+ 			}
+ 		end
+ 
++		configuration { "mingw*" or "vs*" }
++			targetextension ".exe"
++
++		configuration { }
++
+ 		strip()
+ end
+ 
+diff --git a/scripts/src/tools.lua b/scripts/src/tools.lua
+index f48225d..dc28f23 100644
+--- a/scripts/src/tools.lua
++++ b/scripts/src/tools.lua
+@@ -46,6 +46,11 @@ files {
+ 	MAME_DIR .. "src/tools/romcmp.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -106,6 +111,11 @@ files {
+ 	MAME_DIR .. "src/version.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -153,6 +163,11 @@ files {
+ 	MAME_DIR .. "src/tools/jedutil.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -215,6 +230,11 @@ files {
+ 	MAME_DIR .. "src/tools/unidasm.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -274,6 +294,11 @@ files {
+ 	MAME_DIR .. "src/tools/ldresample.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -333,6 +358,11 @@ files {
+ 	MAME_DIR .. "src/tools/ldverify.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -380,6 +410,11 @@ files {
+ 	MAME_DIR .. "src/tools/regrep.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -427,6 +462,11 @@ files {
+ 	MAME_DIR .. "src/tools/srcclean.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -474,6 +514,11 @@ files {
+ 	MAME_DIR .. "src/tools/src2html.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -532,6 +577,11 @@ files {
+ 	MAME_DIR .. "src/tools/split.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -579,6 +629,11 @@ files {
+ 	MAME_DIR .. "src/tools/pngcmp.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -639,6 +694,11 @@ files {
+ 	MAME_DIR .. "src/lib/netlist/prg/nltool.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -677,6 +737,11 @@ files {
+   MAME_DIR .. "src/lib/netlist/prg/nlwav.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -737,6 +802,11 @@ files {
+ 	MAME_DIR .. "src/tools/castool.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -798,6 +868,11 @@ files {
+ 	MAME_DIR .. "src/tools/floptool.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+ 
+ --------------------------------------------------
+@@ -896,4 +971,9 @@ files {
+ 	MAME_DIR .. "src/tools/imgtool/modules/hp48.c",
+ }
+ 
++configuration { "mingw*" or "vs*" }
++	targetextension ".exe"
++
++configuration { }
++
+ strip()
+-- 
+2.4.3
+

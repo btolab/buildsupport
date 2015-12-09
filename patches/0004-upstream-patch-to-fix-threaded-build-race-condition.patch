@@ -1,0 +1,28 @@
+From 5c50b886b9367db2c7830b473cda1e442d8547ba Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Mon, 20 Jul 2015 20:51:54 -0500
+Subject: [PATCH 04/11] upstream patch to fix threaded build race condition
+
+now works with make -j24!
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ 3rdparty/genie/src/actions/make/make_cpp.lua | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/3rdparty/genie/src/actions/make/make_cpp.lua b/3rdparty/genie/src/actions/make/make_cpp.lua
+index 35736a1..46b5df9 100644
+--- a/3rdparty/genie/src/actions/make/make_cpp.lua
++++ b/3rdparty/genie/src/actions/make/make_cpp.lua
+@@ -86,7 +86,7 @@
+ 		end
+ 
+ 		-- target build rule
+-		_p('$(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)')
++		_p('$(TARGET): $(TARGETDIR) $(OBJDIRS) $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)')
+ 
+ 		if prj.kind == "StaticLib" then
+ 			if prj.msgarchiving then
+-- 
+2.4.3
+

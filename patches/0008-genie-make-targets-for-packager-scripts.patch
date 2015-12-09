@@ -1,0 +1,45 @@
+From 4872ff5950494c6995a425177fda2e1f40056f0c Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Mon, 2 Nov 2015 20:41:18 -0600
+Subject: [PATCH 08/11] genie make targets for packager scripts
+
+Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
+---
+ makefile | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/makefile b/makefile
+index 29c260f..46bda32 100644
+--- a/makefile
++++ b/makefile
+@@ -1076,10 +1076,13 @@ $(GENIE): $(GENIE_SRC)
+ 
+ 3rdparty/genie/src/hosts/%.c:
+ 
+-clean:
++.PHONY: genieclean
++genieclean:
++	$(SILENT) $(MAKE) $(MAKEPARAMS) -C 3rdparty/genie/build/gmake.$(GENIEOS) -f genie.make clean
++
++clean: genieclean
+ 	@echo Cleaning...
+ 	-@rm -rf build
+-	$(SILENT) $(MAKE) $(MAKEPARAMS) -C 3rdparty/genie/build/gmake.$(GENIEOS) -f genie.make clean
+ 
+ GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET)/
+ 
+@@ -1096,8 +1099,10 @@ endif
+ $(GEN_FOLDERS):
+ 	-$(call MKDIR,$@)
+ 
++genie: $(GENIE)
++
+ generate: \
+-		$(GENIE) \
++		genie \
+ 		$(GEN_FOLDERS) \
+ 		$(patsubst $(SRC)/%.lay,$(GENDIR)/%.lh,$(LAYOUTS))
+ 
+-- 
+2.4.3
+
