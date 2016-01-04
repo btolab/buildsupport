@@ -1,7 +1,7 @@
-From da0087c41852e39befbc71f341867508267c6177 Mon Sep 17 00:00:00 2001
+From 1e0be78abb9c5f0100d2e69187004fef4b2d23ea Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 21:08:15 -0600
-Subject: [PATCH 5/9] check STRIP_SYMBOLS in strip function, add strip support
+Subject: [PATCH 5/12] check STRIP_SYMBOLS in strip function, add strip support
  for osx builds
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
@@ -13,10 +13,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  4 files changed, 44 insertions(+), 4 deletions(-)
 
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index b7d47b4..d0325f2 100644
+index 27c6f89..734fff5 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
-@@ -1349,10 +1349,7 @@ else
+@@ -1300,10 +1300,7 @@ else
  	end
  end
  mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])
@@ -29,10 +29,10 @@ index b7d47b4..d0325f2 100644
  if _OPTIONS["with-tools"] then
  	group "tools"
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index 8e0c412..c531236 100644
+index ea5e578..48d2232 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
-@@ -533,6 +533,8 @@ if _OPTIONS["with-tools"] then
+@@ -554,6 +554,8 @@ if _OPTIONS["with-tools"] then
  				MAME_DIR .. "src/osd/sdl/SDLMain_tmpl.mm",
  			}
  		end
@@ -41,7 +41,7 @@ index 8e0c412..c531236 100644
  end
  
  
-@@ -574,4 +576,6 @@ if _OPTIONS["targetos"] == "macosx" and _OPTIONS["with-tools"] then
+@@ -595,4 +597,6 @@ if _OPTIONS["targetos"] == "macosx" and _OPTIONS["with-tools"] then
  		files {
  			MAME_DIR .. "src/osd/sdl/aueffectutil.mm",
  		}
@@ -193,10 +193,10 @@ index 1994265..c3ed265 100644
 +
 +strip()
 diff --git a/scripts/toolchain.lua b/scripts/toolchain.lua
-index 1c056ba..97eade9 100644
+index 405dd8e..44ec995 100644
 --- a/scripts/toolchain.lua
 +++ b/scripts/toolchain.lua
-@@ -906,6 +906,13 @@ function toolchain(_buildDir, _subDir)
+@@ -899,6 +899,13 @@ function toolchain(_buildDir, _subDir)
  end
  
  function strip()
@@ -210,7 +210,7 @@ index 1c056ba..97eade9 100644
  	configuration { "android-arm", "Release" }
  		postbuildcommands {
  			"$(SILENT) echo Stripping symbols.",
-@@ -967,5 +974,6 @@ function strip()
+@@ -960,5 +967,6 @@ function strip()
  		}
  
  	configuration {} -- reset configuration

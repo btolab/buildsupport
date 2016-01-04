@@ -1,7 +1,7 @@
-From 694f08790955cc7189f6b7b829d9c44aef89de40 Mon Sep 17 00:00:00 2001
+From 394b6cbc0c3e929b26ad43151e12089e83c19e59 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 20 Jul 2015 20:51:54 -0500
-Subject: [PATCH 4/9] upstream patch to fix threaded build race condition
+Subject: [PATCH 4/12] upstream patch to fix threaded build race condition
 
 now works with make -j24!
 
@@ -11,7 +11,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/3rdparty/genie/src/actions/make/make_cpp.lua b/3rdparty/genie/src/actions/make/make_cpp.lua
-index a78fcfe..ddccdfd 100644
+index 0f2174e..e640998 100644
 --- a/3rdparty/genie/src/actions/make/make_cpp.lua
 +++ b/3rdparty/genie/src/actions/make/make_cpp.lua
 @@ -86,7 +86,7 @@

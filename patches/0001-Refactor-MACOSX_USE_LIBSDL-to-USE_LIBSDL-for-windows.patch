@@ -1,7 +1,7 @@
-From 67780febddc43c6a6652b35defbba7c1aef4f6be Mon Sep 17 00:00:00 2001
+From 85e348f2e646ee5332b5a72e94612e3c154a3c1e Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 9 Dec 2015 09:41:34 -0600
-Subject: [PATCH 1/9] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows and
+Subject: [PATCH 1/12] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows and
  linux static library support
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
@@ -12,7 +12,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  3 files changed, 37 insertions(+), 25 deletions(-)
 
 diff --git a/makefile b/makefile
-index 9cc7227..e3bee8f 100644
+index 62086ea..e1e19bb 100644
 --- a/makefile
 +++ b/makefile
 @@ -66,7 +66,7 @@
@@ -24,7 +24,7 @@ index 9cc7227..e3bee8f 100644
  # CYGWIN_BUILD = 1
  
  # BUILDDIR = build
-@@ -591,8 +591,8 @@ ifdef SDL_FRAMEWORK_PATH
+@@ -609,8 +609,8 @@ ifdef SDL_FRAMEWORK_PATH
  PARAMS += --SDL_FRAMEWORK_PATH='$(SDL_FRAMEWORK_PATH)'
  endif
  
@@ -36,7 +36,7 @@ index 9cc7227..e3bee8f 100644
  
  ifdef LDOPTS
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index 4cb31f3..da0a590 100644
+index f07686a..8ae7c2e 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
 @@ -54,14 +54,20 @@ function maintargetosdoptions(_target,_subtarget)
@@ -107,7 +107,7 @@ index 4cb31f3..da0a590 100644
  			addlibfromstring(str)
  			addoptionsfromstring(str)
  		end
-@@ -497,14 +503,20 @@ if _OPTIONS["with-tools"] then
+@@ -518,14 +524,20 @@ if _OPTIONS["with-tools"] then
  		}
  
  		if _OPTIONS["targetos"] == "windows" then
@@ -136,10 +136,10 @@ index 4cb31f3..da0a590 100644
  			links {
  				"psapi",
 diff --git a/scripts/src/osd/sdl_cfg.lua b/scripts/src/osd/sdl_cfg.lua
-index 878a5a2..bb1a286 100644
+index adcc67d..3598c6c 100644
 --- a/scripts/src/osd/sdl_cfg.lua
 +++ b/scripts/src/osd/sdl_cfg.lua
-@@ -81,7 +81,7 @@ if BASE_TARGETOS=="unix" then
+@@ -76,7 +76,7 @@ if BASE_TARGETOS=="unix" then
  		"SDLMAME_UNIX",
  	}
  	if _OPTIONS["targetos"]=="macosx" then

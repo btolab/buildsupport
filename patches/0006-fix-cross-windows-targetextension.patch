@@ -1,7 +1,7 @@
-From 395519001da1f1c78cd00d77c3d5bf718154b4ad Mon Sep 17 00:00:00 2001
+From e6cc81d29c3223edde806cc1375d0623ebef02c7 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Tue, 3 Nov 2015 00:29:49 -0600
-Subject: [PATCH 6/9] fix cross windows targetextension
+Subject: [PATCH 6/12] fix cross windows targetextension
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -10,10 +10,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  2 files changed, 85 insertions(+)
 
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index c531236..6964c8e 100644
+index 48d2232..c3dd027 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
-@@ -534,6 +534,11 @@ if _OPTIONS["with-tools"] then
+@@ -555,6 +555,11 @@ if _OPTIONS["with-tools"] then
  			}
  		end
  

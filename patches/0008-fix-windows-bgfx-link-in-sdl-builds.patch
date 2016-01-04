@@ -1,7 +1,7 @@
-From 4c2831baec419fe96702b0604a661e298cf044fd Mon Sep 17 00:00:00 2001
+From 811349d64a283ae99349374ec770502021a9dd74 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Tue, 3 Nov 2015 08:53:15 -0600
-Subject: [PATCH 8/9] fix windows bgfx link in sdl builds
+Subject: [PATCH 8/12] fix windows bgfx link in sdl builds
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 5 insertions(+)
 
 diff --git a/scripts/src/osd/sdl.lua b/scripts/src/osd/sdl.lua
-index 6964c8e..e5af3c6 100644
+index c3dd027..01715b9 100644
 --- a/scripts/src/osd/sdl.lua
 +++ b/scripts/src/osd/sdl.lua
 @@ -99,6 +99,11 @@ function maintargetosdoptions(_target,_subtarget)

@@ -1,0 +1,36 @@
+From 800cdac3d6a075da1b55b99359fd5682c901e292 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 3 Jan 2016 20:47:17 -0600
+Subject: [PATCH 11/12] set plist dependency before task to fix  parallel build
+
+---
+ scripts/src/main.lua | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/scripts/src/main.lua b/scripts/src/main.lua
+index cd240f2..23e5991 100644
+--- a/scripts/src/main.lua
++++ b/scripts/src/main.lua
+@@ -199,16 +199,15 @@ end
+ 	end
+ 
+ 	if _OPTIONS["targetos"]=="macosx" and (not override_resources) then
++		dependency {
++			{ "$(TARGET)" ,  GEN_DIR  .. "resource/" .. _subtarget .. "-Info.plist", true  },
++		}
+ 		linkoptions {
+ 			"-sectcreate __TEXT __info_plist " .. _MAKE.esc(GEN_DIR) .. "resource/" .. _subtarget .. "-Info.plist"
+ 		}
+ 		custombuildtask {
+ 			{ MAME_DIR .. "src/version.cpp" ,  GEN_DIR .. "resource/" .. _subtarget .. "-Info.plist",    {  MAME_DIR .. "scripts/build/verinfo.py" }, {"@echo Emitting " .. _subtarget .. "-Info.plist" .. "...",    PYTHON .. " $(1)  -p -b " .. _subtarget .. " $(<) > $(@)" }},
+ 		}
+-		dependency {
+-			{ "$(TARGET)" ,  GEN_DIR  .. "resource/" .. _subtarget .. "-Info.plist", true  },
+-		}
+-
+ 	end
+ 	local rctarget = _subtarget
+ 
+-- 
+2.4.3
+

@@ -1,7 +1,7 @@
-From 2b47a5003f31a653221eb78207064f1277e68838 Mon Sep 17 00:00:00 2001
+From 394f8504af1becf93aff0ea425d702390c01de74 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 29 Jul 2015 00:55:26 -0500
-Subject: [PATCH 9/9] make sdl osd the same size as directx
+Subject: [PATCH 9/12] make sdl osd the same size as directx
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -10,12 +10,12 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  2 files changed, 1 insertion(+), 5 deletions(-)
 
 diff --git a/src/osd/modules/render/drawogl.cpp b/src/osd/modules/render/drawogl.cpp
-index de04e04..6da9d91 100644
+index 4a2744e..c4930e0 100644
 --- a/src/osd/modules/render/drawogl.cpp
 +++ b/src/osd/modules/render/drawogl.cpp
-@@ -542,11 +542,7 @@ public:
- 	/* virtual */ void destroy();
- 	/* virtual */ render_primitive_list *get_primitives()
+@@ -544,11 +544,7 @@ public:
+ 	virtual void destroy() override;
+ 	virtual render_primitive_list *get_primitives() override
  	{
 -#ifdef OSD_WINDOWS
  		osd_dim nd = window().get_size();
@@ -26,12 +26,12 @@ index de04e04..6da9d91 100644
  		{
  			m_blit_dim = nd;
 diff --git a/src/osd/modules/render/drawsdl.cpp b/src/osd/modules/render/drawsdl.cpp
-index afd2057..ed935b1 100644
+index 221ac79..b998e05 100644
 --- a/src/osd/modules/render/drawsdl.cpp
 +++ b/src/osd/modules/render/drawsdl.cpp
 @@ -75,7 +75,7 @@ public:
- 	/* virtual */ void destroy();
- 	/* virtual */ render_primitive_list *get_primitives()
+ 	/* virtual */ void destroy() override;
+ 	/* virtual */ render_primitive_list *get_primitives() override
  	{
 -		osd_dim nd = window().blit_surface_size();
 +		osd_dim nd = window().get_size();

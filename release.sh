@@ -64,17 +64,17 @@ for BUILD in $(ls build/*/bin | grep :\$ | sed 's/.*\/\(.*\)\/bin:$/\1/'); do
 	done
 done
 
-#echo Assembling release source ....
-#mkdir -p build/release/src
-#git archive HEAD | tar -x -C build/release/src
-#pushd build/release/src
-#echo Creating 7zip self-extracting source archive....
-#7za a -mx=9 -y -r -t7z -sfx7zWin32.sfx ../sdlmame${RELEASE}s.exe >/dev/null
-#echo Creating raw source ZIP....
-#7za a -mx=0 -y -r -tzip ../sdlmame.zip >/dev/null
-#echo Creating final source ZIP....
-#7za a -mpass=4 -mfb=255 -y -tzip ../sdlmame${RELEASE}s.zip ../sdlmame.zip  >/dev/null
-#rm ../sdlmame.zip
-#popd
+echo Assembling release source ....
+mkdir -p build/release/src
+git archive HEAD | tar -x -C build/release/src
+pushd build/release/src
+echo Creating 7zip self-extracting source archive....
+7za a -mx=9 -y -r -t7z -sfx7zWin32.sfx ../sdlmame${RELEASE}s.exe >/dev/null
+echo Creating raw source ZIP....
+7za a -mx=0 -y -r -tzip ../sdlmame.zip >/dev/null
+echo Creating final source ZIP....
+7za a -mpass=4 -mfb=255 -y -tzip ../sdlmame${RELEASE}s.zip ../sdlmame.zip  >/dev/null
+rm ../sdlmame.zip
+popd
 
 echo Finished creating release....
