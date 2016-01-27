@@ -1,0 +1,31 @@
+From 5ec318e212dd7c20f6e795524f650b03b883fbfc Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Wed, 27 Jan 2016 10:34:36 -0600
+Subject: [PATCH 13/13] remove_extent_t helper missing on xcode 10.7
+
+---
+ src/lib/util/corealloc.h | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/lib/util/corealloc.h b/src/lib/util/corealloc.h
+index 4f0b961..cbe8a52 100644
+--- a/src/lib/util/corealloc.h
++++ b/src/lib/util/corealloc.h
+@@ -31,7 +31,13 @@
+ #define global_free(_ptr)                           do { delete _ptr; } while (0)
+ #define global_free_array(_ptr)                     do { delete[] _ptr; } while (0)
+ 
+-
++#if defined(__APPLE__)
++namespace std
++{
++	template<class T>
++	using remove_extent_t = typename remove_extent<T>::type;
++}
++#endif
+ 
+ template<typename _Tp, typename... _Args>
+ inline _Tp* global_alloc_clear(_Args&&... __args)
+-- 
+2.4.3
+

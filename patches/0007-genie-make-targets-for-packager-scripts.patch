@@ -1,7 +1,7 @@
-From 4391c3e8c66fc5b1ec42c744a747f4bb11ccf15c Mon Sep 17 00:00:00 2001
+From ae55ab98fe2d4777cec47c74d7b6645ff3f77cf8 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 20:41:18 -0600
-Subject: [PATCH 7/12] genie make targets for packager scripts
+Subject: [PATCH 07/13] genie make targets for packager scripts
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/makefile b/makefile
-index de44dbd..23692a0 100644
+index 17a3462..56f27f2 100644
 --- a/makefile
 +++ b/makefile
-@@ -1169,10 +1169,13 @@ $(GENIE): $(GENIE_SRC)
+@@ -1233,10 +1233,13 @@ $(GENIE): $(GENIE_SRC)
  
  3rdparty/genie/src/hosts/%.c:
  
@@ -28,7 +28,7 @@ index de44dbd..23692a0 100644
  
  GEN_FOLDERS := $(GENDIR)/$(TARGET)/layout/ $(GENDIR)/$(TARGET)/$(SUBTARGET)/
  
-@@ -1189,8 +1192,10 @@ endif
+@@ -1253,8 +1256,10 @@ endif
  $(GEN_FOLDERS):
  	-$(call MKDIR,$@)
  

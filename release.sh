@@ -31,9 +31,9 @@ rm -rf build/*/release
 rm -rf build/release
 
 # recursively assemble binary packages
-for BUILD in $(ls build/*/bin | grep :\$ | sed 's/.*\/\(.*\)\/bin:$/\1/'); do
-	for ARCH in $(ls build/${BUILD}/bin); do
-		for TYPE in $(ls build/${BUILD}/bin/${ARCH}); do
+for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
+	for ARCH in $(ls -1d build/${BUILD}/bin/* | sed 's/.*\/\([^\/]*\)$/\1/'); do
+		for TYPE in $(ls -1 build/${BUILD}/bin/${ARCH}); do
 			echo Assembling $BUILD $ARCH $TYPE
 			RELEASENAME="sdlmame${RELEASE}b"
 			if [[ ${ARCH} == x64 ]]; then

@@ -1,7 +1,7 @@
-From 394f8504af1becf93aff0ea425d702390c01de74 Mon Sep 17 00:00:00 2001
+From 596c85099955dec4174a30a347c6cb8a040b5fd1 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 29 Jul 2015 00:55:26 -0500
-Subject: [PATCH 9/12] make sdl osd the same size as directx
+Subject: [PATCH 09/13] make sdl osd the same size as directx
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
