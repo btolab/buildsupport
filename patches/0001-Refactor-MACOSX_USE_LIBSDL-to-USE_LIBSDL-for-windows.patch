@@ -1,4 +1,4 @@
-From 32520d81692cf87a9c02eabb6efa282b98654528 Mon Sep 17 00:00:00 2001
+From ee8a7c2a825d0206994c201c73f9cecbe8e6dbf0 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 9 Dec 2015 09:41:34 -0600
 Subject: [PATCH 01/13] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows
@@ -12,10 +12,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  3 files changed, 37 insertions(+), 25 deletions(-)
 
 diff --git a/makefile b/makefile
-index 7818353..b0276b0 100644
+index 308b2cb..c74627e 100644
 --- a/makefile
 +++ b/makefile
-@@ -68,7 +68,7 @@
+@@ -69,7 +69,7 @@
  # SDL_INSTALL_ROOT = /opt/sdl2
  # SDL_FRAMEWORK_PATH = $(HOME)/Library/Frameworks
  # SDL_LIBVER = sdl
@@ -24,7 +24,7 @@ index 7818353..b0276b0 100644
  # CYGWIN_BUILD = 1
  
  # BUILDDIR = build
-@@ -621,8 +621,8 @@ ifdef SDL_FRAMEWORK_PATH
+@@ -626,8 +626,8 @@ ifdef SDL_FRAMEWORK_PATH
  PARAMS += --SDL_FRAMEWORK_PATH='$(SDL_FRAMEWORK_PATH)'
  endif
  
@@ -136,7 +136,7 @@ index 6acb5a2..fd8cf22 100644
  			links {
  				"psapi",
 diff --git a/scripts/src/osd/sdl_cfg.lua b/scripts/src/osd/sdl_cfg.lua
-index 2dc1a7e..5ee660a 100644
+index dd902d1..431443a 100644
 --- a/scripts/src/osd/sdl_cfg.lua
 +++ b/scripts/src/osd/sdl_cfg.lua
 @@ -81,7 +81,7 @@ if BASE_TARGETOS=="unix" then

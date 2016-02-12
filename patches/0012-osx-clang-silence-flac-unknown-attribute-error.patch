@@ -1,4 +1,4 @@
-From 27cbc09194f9bc7d55c107107716cf8d0831c4d2 Mon Sep 17 00:00:00 2001
+From 4a471d5eacf5a45a8abcbaac79746569c18ca1bf Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 4 Jan 2016 21:41:56 -0600
 Subject: [PATCH 12/13] osx clang, silence flac unknown attribute error
@@ -9,7 +9,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 5 insertions(+)
 
 diff --git a/scripts/src/3rdparty.lua b/scripts/src/3rdparty.lua
-index 2bee647..8715a6e 100644
+index 16b86dc..d66899b 100644
 --- a/scripts/src/3rdparty.lua
 +++ b/scripts/src/3rdparty.lua
 @@ -280,6 +280,11 @@ end

@@ -1,4 +1,4 @@
-From 4d89d33bcd0b57f2e9b79b53710a4e4097828a6f Mon Sep 17 00:00:00 2001
+From 43cd47d577bb93861f26552b6372a756a9afbb44 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Jan 2016 20:47:17 -0600
 Subject: [PATCH 11/13] set plist dependency before task to fix parallel build
@@ -9,10 +9,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 3 insertions(+), 4 deletions(-)
 
 diff --git a/scripts/src/main.lua b/scripts/src/main.lua
-index da633c5..ce8bb44 100644
+index 2397a48..72de77e 100644
 --- a/scripts/src/main.lua
 +++ b/scripts/src/main.lua
-@@ -198,16 +198,15 @@ end
+@@ -200,16 +200,15 @@ end
  	end
  
  	if _OPTIONS["targetos"]=="macosx" and (not override_resources) then

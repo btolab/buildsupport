@@ -1,4 +1,4 @@
-From a3c9b4f0fe5c74974577883a4b26f58ef516388e Mon Sep 17 00:00:00 2001
+From 157dcdf03c89f8dec8205f8bf858f3059d9186ec Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Tue, 3 Nov 2015 08:53:15 -0600
 Subject: [PATCH 08/13] fix windows bgfx link in sdl builds

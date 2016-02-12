@@ -1,4 +1,4 @@
-From 24a07c3b8ae44021e809629ca580e4eb52bc38de Mon Sep 17 00:00:00 2001
+From 6e1867b87e10a20b6e6bce8e535447e4d24824c7 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 20 Jul 2015 20:51:54 -0500
 Subject: [PATCH 04/13] upstream patch to fix threaded build race condition
@@ -11,7 +11,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/3rdparty/genie/src/actions/make/make_cpp.lua b/3rdparty/genie/src/actions/make/make_cpp.lua
-index 795b74a..219f0ce 100644
+index 795b74a..852c4fe 100644
 --- a/3rdparty/genie/src/actions/make/make_cpp.lua
 +++ b/3rdparty/genie/src/actions/make/make_cpp.lua
 @@ -86,7 +86,7 @@
@@ -19,7 +19,7 @@ index 795b74a..219f0ce 100644
  
  		-- target build rule
 -		_p('$(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES) | $(TARGETDIR) $(OBJDIRS)')
-+		_p('$(TARGET): $(TARGETDIR) $(OBJDIRS) $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)')
++		_p('$(TARGET): $(OBJDIRS) $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES) | $(TARGETDIR)')
  
  		if prj.kind == "StaticLib" then
  			if prj.msgarchiving then

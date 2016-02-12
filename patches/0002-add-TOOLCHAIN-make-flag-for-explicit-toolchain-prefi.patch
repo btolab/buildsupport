@@ -1,4 +1,4 @@
-From 6792348d16dd2503bbbc888809e93cc1f5a3b57e Mon Sep 17 00:00:00 2001
+From 017829102e6dc2ebea100f5d33f10daa40697f68 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 21:05:34 -0600
 Subject: [PATCH 02/13] add TOOLCHAIN make flag for explicit toolchain prefix
@@ -13,10 +13,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  4 files changed, 49 insertions(+), 29 deletions(-)
 
 diff --git a/makefile b/makefile
-index b0276b0..17a3462 100644
+index c74627e..b38b540 100644
 --- a/makefile
 +++ b/makefile
-@@ -74,6 +74,7 @@
+@@ -75,6 +75,7 @@
  # BUILDDIR = build
  # TARGETOS = windows
  # CROSS_BUILD = 1
@@ -24,7 +24,7 @@ index b0276b0..17a3462 100644
  # OVERRIDE_CC = cc
  # OVERRIDE_CXX = c++
  # OVERRIDE_LD = ld
-@@ -269,9 +270,9 @@ WINDRES  := $(MINGW32)/bin/windres
+@@ -270,9 +271,9 @@ WINDRES  := $(MINGW32)/bin/windres
  endif
  else
  ifeq ($(ARCHITECTURE),_x64)
@@ -36,7 +36,7 @@ index b0276b0..17a3462 100644
  endif
  endif
  
-@@ -405,6 +406,9 @@ endif
+@@ -406,6 +407,9 @@ endif
  
  PARAMS+= --distro=$(DISTRO)
  
@@ -46,7 +46,7 @@ index b0276b0..17a3462 100644
  ifdef OVERRIDE_CC
  PARAMS += --CC='$(OVERRIDE_CC)'
  ifndef CROSS_BUILD
-@@ -770,12 +774,12 @@ endif
+@@ -776,12 +780,12 @@ endif
  
  ifeq ($(OS),windows)
  ifeq (posix,$(SHELLTYPE))
@@ -63,7 +63,7 @@ index b0276b0..17a3462 100644
  PYTHON_AVAILABLE := $(shell $(PYTHON) --version > NUL 2>&1 && echo python)
  endif
  ifdef MSBUILD
-@@ -792,9 +796,9 @@ MSBUILD_PARAMS += /p:Platform=win32
+@@ -798,9 +802,9 @@ MSBUILD_PARAMS += /p:Platform=win32
  endif
  endif
  else
@@ -76,10 +76,10 @@ index b0276b0..17a3462 100644
  PYTHON_AVAILABLE := $(shell $(PYTHON) --version > /dev/null 2>&1 && echo python)
  endif
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index 2fcfb32..e87d854 100644
+index 34705be..d040725 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
-@@ -193,6 +193,11 @@ newoption {
+@@ -198,6 +198,11 @@ newoption {
  }
  
  newoption {
@@ -91,7 +91,7 @@ index 2fcfb32..e87d854 100644
  	trigger = "PROFILE",
  	description = "Enable profiling.",
  }
-@@ -422,6 +427,10 @@ if(_OPTIONS["USE_BGFX"]~=nil) then
+@@ -427,6 +432,10 @@ if(_OPTIONS["USE_BGFX"]~=nil) then
  	USE_BGFX = tonumber(_OPTIONS["USE_BGFX"])
  end
  

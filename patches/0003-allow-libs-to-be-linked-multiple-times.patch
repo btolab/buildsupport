@@ -1,4 +1,4 @@
-From a411a6f676a7e7be94379afcc5e27cfa045387a9 Mon Sep 17 00:00:00 2001
+From a01919cf072a2c98cea0726ebf022490a32901a8 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sat, 25 Jul 2015 20:08:43 -0500
 Subject: [PATCH 03/13] allow libs to be linked multiple times
