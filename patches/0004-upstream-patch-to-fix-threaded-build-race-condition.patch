@@ -1,7 +1,7 @@
-From 6e1867b87e10a20b6e6bce8e535447e4d24824c7 Mon Sep 17 00:00:00 2001
+From 05a2a90f173af52fe609f6815abd5d03394dd7ad Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 20 Jul 2015 20:51:54 -0500
-Subject: [PATCH 04/13] upstream patch to fix threaded build race condition
+Subject: [PATCH 04/12] upstream patch to fix threaded build race condition
 
 now works with make -j24!
 

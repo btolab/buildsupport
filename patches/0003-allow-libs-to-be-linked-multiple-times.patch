@@ -1,7 +1,7 @@
-From a01919cf072a2c98cea0726ebf022490a32901a8 Mon Sep 17 00:00:00 2001
+From 741c83a598495ed0da41d4a278d376926f1ed142 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sat, 25 Jul 2015 20:08:43 -0500
-Subject: [PATCH 03/13] allow libs to be linked multiple times
+Subject: [PATCH 03/12] allow libs to be linked multiple times
 
 genie filters duplicate links but this is a problem when linking against external static libraries like libsdl with mingw.
 winmm needs to be linked again after sdl because of the way gcc ld works. This patch corrects the chicken-n-egg problem.

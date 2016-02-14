@@ -1,7 +1,7 @@
-From 0a89179e7627d26b9fae705d44c2a23fe3d4805d Mon Sep 17 00:00:00 2001
+From 361703feee5277b24d2c2e4ae8146125f8756dd4 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 21:08:15 -0600
-Subject: [PATCH 05/13] check STRIP_SYMBOLS in strip function, add strip
+Subject: [PATCH 05/12] check STRIP_SYMBOLS in strip function, add strip
  support for osx builds
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
@@ -13,10 +13,10 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  4 files changed, 44 insertions(+), 4 deletions(-)
 
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index d040725..e04d419 100644
+index 0811088..316eebd 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
-@@ -1307,10 +1307,7 @@ else
+@@ -1308,10 +1308,7 @@ else
  	startproject (_OPTIONS["subtarget"])
  end 
  mainProject(_OPTIONS["target"],_OPTIONS["subtarget"])

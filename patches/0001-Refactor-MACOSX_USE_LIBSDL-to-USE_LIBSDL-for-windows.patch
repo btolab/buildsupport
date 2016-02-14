@@ -1,7 +1,7 @@
-From ee8a7c2a825d0206994c201c73f9cecbe8e6dbf0 Mon Sep 17 00:00:00 2001
+From 999d36e383a437d5c3ed3c3321437025655cd54e Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 9 Dec 2015 09:41:34 -0600
-Subject: [PATCH 01/13] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows
+Subject: [PATCH 01/12] Refactor MACOSX_USE_LIBSDL to USE_LIBSDL for windows
  and linux static library support
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>

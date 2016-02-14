@@ -1,7 +1,7 @@
-From a7c34445fedda24593f891a1ea41dd6cbbd030f3 Mon Sep 17 00:00:00 2001
+From a63903a926fc4bf9f5884ab583b26eb881cbaf0e Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 20:41:18 -0600
-Subject: [PATCH 07/13] genie make targets for packager scripts
+Subject: [PATCH 07/12] genie make targets for packager scripts
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---

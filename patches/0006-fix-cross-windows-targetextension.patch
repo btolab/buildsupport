@@ -1,7 +1,7 @@
-From cb2cb302288e6737ab4efff43a54e84f1af61f99 Mon Sep 17 00:00:00 2001
+From 6e6a1cc0f2957afb57507b1b7bcbc1dc83f4dc52 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Tue, 3 Nov 2015 00:29:49 -0600
-Subject: [PATCH 06/13] fix cross windows targetextension
+Subject: [PATCH 06/12] fix cross windows targetextension
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---

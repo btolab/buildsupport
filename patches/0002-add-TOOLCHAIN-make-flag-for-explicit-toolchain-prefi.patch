@@ -1,7 +1,7 @@
-From 017829102e6dc2ebea100f5d33f10daa40697f68 Mon Sep 17 00:00:00 2001
+From e3022be03b2019b9f44e27cd8dea8bbf9659c609 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Mon, 2 Nov 2015 21:05:34 -0600
-Subject: [PATCH 02/13] add TOOLCHAIN make flag for explicit toolchain prefix
+Subject: [PATCH 02/12] add TOOLCHAIN make flag for explicit toolchain prefix
  (cross compiling)
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
@@ -76,7 +76,7 @@ index c74627e..b38b540 100644
  PYTHON_AVAILABLE := $(shell $(PYTHON) --version > /dev/null 2>&1 && echo python)
  endif
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index 34705be..d040725 100644
+index a51c3cb..0811088 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
 @@ -198,6 +198,11 @@ newoption {
