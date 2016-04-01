@@ -1,7 +1,7 @@
 From 43eef73ed6ee312c0d69ca2ac9b6591d5ef6cd71 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sat, 25 Jul 2015 20:08:43 -0500
-Subject: [PATCH 1/3] allow libs to be linked multiple times
+Subject: [PATCH 1/4] allow libs to be linked multiple times
 
 genie filters duplicate links but this is a problem when linking against external static libraries like libsdl with mingw.
 winmm needs to be linked again after sdl because of the way gcc ld works. This patch corrects the chicken-n-egg problem.
@@ -13,7 +13,7 @@ Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/3rdparty/genie/src/base/bake.lua b/3rdparty/genie/src/base/bake.lua
-index 0c4a747..96e88e9 100644
+index ab50612..f5da62a 100644
 --- a/3rdparty/genie/src/base/bake.lua
 +++ b/3rdparty/genie/src/base/bake.lua
 @@ -157,15 +157,15 @@
@@ -45,7 +45,7 @@ index 0c4a747..96e88e9 100644
  							removes = src.removes[fieldname]
  							if removes then
 diff --git a/3rdparty/genie/src/base/project.lua b/3rdparty/genie/src/base/project.lua
-index 5806757..7e22629 100644
+index 5806757..0312067 100644
 --- a/3rdparty/genie/src/base/project.lua
 +++ b/3rdparty/genie/src/base/project.lua
 @@ -380,7 +380,7 @@
@@ -53,7 +53,7 @@ index 5806757..7e22629 100644
  					item = path.translate(item, "\\")
  				end
 -				if not table.contains(result, item) then
-+				if part=="name" or not table.contains(result, item) then
++				if kind == "system" or not table.contains(result, item) then
  					table.insert(result, item)
  				end
  			end

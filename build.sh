@@ -25,6 +25,15 @@ function popd() {
     command popd "$@" >/dev/null
 }
 
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_PATH}" ]) then
+	while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd .
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd
+
 # Error out if branch is dirty
 if [[ ! -z $(git status --porcelain) ]]; then
     echo "Repository is not clean, aborting."
@@ -41,7 +50,7 @@ fi
 
 # apply patches
 echo "Applying buildbot patches"
-git am --signoff ../buildbot/patches/*.patch
+git am --signoff "${SCRIPT_PATH}"/patches/*.patch
 
 echo "Re/Build genie"
 make genie
@@ -62,19 +71,15 @@ make TARGETOS=windows TOOLCHAIN=i686-w64-mingw32.static- TARGET=mame TOOLS=1 SEP
 
 echo Windows 32-bit release version....
 
-make TARGETOS=windows TOOLCHAIN=i686-w64-mingw32.static- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=0 OPTIMIZE=3 SYMBOLS=1 SYMLEVEL=1 REGENIE=1 USE_LIBSDL=1 OSD=sdl SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
+make TARGETOS=windows TOOLCHAIN=i686-w64-mingw32.static- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=0 STRIP_SYMBOLS=1 OPTIMIZE=3 SYMBOLS=1 SYMLEVEL=1 REGENIE=1 USE_LIBSDL=1 OSD=sdl SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
 
 echo Windows 64-bit release version....
 
-make TARGETOS=windows TOOLCHAIN=x86_64-w64-mingw32.static- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=1 OPTIMIZE=3 SYMBOLS=1 SYMLEVEL=1 REGENIE=1 USE_LIBSDL=1 OSD=sdl SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
+make TARGETOS=windows TOOLCHAIN=x86_64-w64-mingw32.static- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=1 STRIP_SYMBOLS=1 OPTIMIZE=3 SYMBOLS=1 SYMLEVEL=1 REGENIE=1 USE_LIBSDL=1 OSD=sdl SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
 
 export MACOSX_DEPLOYMENT_TARGET=10.7
 `osxcross-conf`
 
-echo MACOSX 32-bit release version....
-
-make TARGETOS=macosx TOOLCHAIN=i386-apple-darwin11- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=0 OPTIMIZE=2 REGENIE=1 USE_SYSTEM_LIB_EXPAT=1 USE_SYSTEM_LIB_ZLIB=1 USE_LIBSDL=1 USE_QTDEBUG=0 CLANG_VERSION=3.5.0 ARCHOPTS="-stdlib=libc++ -std=c++1y" SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
-
 echo MACOSX 64-bit release version....
 
-make TARGETOS=macosx TOOLCHAIN=x86_64-apple-darwin11- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=1 OPTIMIZE=2 REGENIE=1 USE_SYSTEM_LIB_EXPAT=1 USE_SYSTEM_LIB_ZLIB=1 USE_LIBSDL=1 USE_QTDEBUG=0 CLANG_VERSION=3.5.0 ARCHOPTS="-stdlib=libc++ -std=c++1y" SHELLTYPE=posix -j${NPROC} -l${LLIMIT}
+make TARGETOS=macosx TOOLCHAIN=x86_64-apple-darwin11- TARGET=mame TOOLS=1 SEPARATE_BIN=1 PTR64=1 STRIP_SYMBOLS=1 OPTIMIZE=2 REGENIE=1 USE_SYSTEM_LIB_EXPAT=1 USE_SYSTEM_LIB_ZLIB=1 USE_LIBSDL=1 USE_QTDEBUG=0 CLANG_VERSION=3.5.0 ARCHOPTS="-stdlib=libc++ -std=c++1y" SHELLTYPE=posix -j${NPROC} -l${LLIMIT}

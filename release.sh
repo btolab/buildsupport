@@ -22,6 +22,15 @@ function popd() {
     command popd "$@" >/dev/null
 }
 
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_PATH}" ]) then
+	while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd .
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd
+
 RELEASE=$(git describe --tag --abbrev=0 | sed 's/mame//')
 
 echo Begin packaging SDLMAME ${RELEASE} ...
@@ -49,9 +58,9 @@ for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
 			[ -f *.sym ] && cp *.sym ${PACKAGEDIR}/
 			find . -executable -type f -exec cp "{}" ${PACKAGEDIR} \;
 			popd
-			cp ../build/whatsnew/whatsnew_${RELEASE}.txt ${PACKAGEDIR}/whatsnew.txt
-			cp -r docs hash ${PACKAGEDIR}/
-			7za x ../build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
+			cp "${SCRIPT_PATH}"/../build/whatsnew/whatsnew_${RELEASE}.txt ${PACKAGEDIR}/whatsnew.txt
+			cp -r docs hash nl_examples samples artwork bgfx plugins language ini uismall.bdf ${PACKAGEDIR}/
+			7za -y x "${SCRIPT_PATH}"/../build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
 			echo Packaging ${BUILD} ${ARCH} ${TYPE}
 			pushd ${PACKAGEDIR}
 			if [[ ${BUILD} == mingw* ]] || [[ ${BUILD} == vs* ]]; then

@@ -1,36 +1,30 @@
-From 762d5c2d0d844f5e54f2d31c7ec3350e044e45bf Mon Sep 17 00:00:00 2001
+From 26ff3578604e3a5c006b748ff203a9faaed46fda Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
-Date: Wed, 2 Mar 2016 06:20:47 -0600
-Subject: [PATCH 3/3] implement helpers for unsupported toolchains
+Date: Tue, 29 Mar 2016 09:15:40 -0500
+Subject: [PATCH 3/4] implement helpers for unsupported toolchains
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
- scripts/genie.lua        | 37 ++++++++++++++++++-------------------
- src/lib/util/corealloc.h | 33 +++++++++++++++++++++++++++++++++
- src/lib/util/corestr.h   |  1 +
- src/lib/util/coretmpl.h  | 34 ++++++++++++++++++++++++++++++++++
- 4 files changed, 86 insertions(+), 19 deletions(-)
+ scripts/genie.lua                | 30 ++++++++++++++++++------------
+ src/lib/util/corealloc.h         | 35 +++++++++++++++++++++++++++++++++--
+ src/lib/util/corestr.h           |  1 +
+ src/lib/util/coretmpl.h          | 37 ++++++++++++++++++++++++++++++++++++-
+ src/osd/modules/file/posixfile.h |  1 +
+ 5 files changed, 89 insertions(+), 15 deletions(-)
 
 diff --git a/scripts/genie.lua b/scripts/genie.lua
-index 4f580dc..524d077 100644
+index 9b2e861..21e1dec 100644
 --- a/scripts/genie.lua
 +++ b/scripts/genie.lua
-@@ -699,23 +699,6 @@ if string.find(_OPTIONS["gcc"], "clang") and ((version < 30500) or (_OPTIONS["ta
+@@ -679,16 +679,6 @@ if string.find(_OPTIONS["gcc"], "clang") and ((version < 30500) or (_OPTIONS["ta
  		"-x objective-c++",
  		"-std=c++1y",
  	}
 -else
--	if _OPTIONS["targetos"]=="os2" then
--		buildoptions_cpp {
--			"-x c++",
--			"-std=gnu++14",
--		}
--	else
--		buildoptions_cpp {
--			"-x c++",
--			"-std=c++14",
--		}
--	end
+-	buildoptions_cpp {
+-		"-x c++",
+-		"-std=c++14",
+-	}
 -
 -	buildoptions_objc {
 -		"-x objective-c++",
@@ -39,16 +33,16 @@ index 4f580dc..524d077 100644
  end
  -- this speeds it up a bit by piping between the preprocessor/compiler/assembler
  	if not ("pnacl" == _OPTIONS["gcc"]) then
-@@ -983,8 +966,24 @@ end
+@@ -961,8 +951,24 @@ end
  			end
  		else
  			if (version < 40900) then
 -				print("GCC version 4.9 or later needed")
 -				os.exit(-1)
 +				print("GCC version 4.9 or later needed, but trying anyway.")
-+				buildoptions {
++				buildoptions_cpp {
 +					"-x c++",
-+					"-std=c++11",
++					"-std=c++1y",
 +				}
 +				defines
 +				{
@@ -67,10 +61,10 @@ index 4f580dc..524d077 100644
  				buildoptions {
  					"-Wno-unused-result", -- needed for fgets,fread on linux
 diff --git a/src/lib/util/corealloc.h b/src/lib/util/corealloc.h
-index 2c1df6d..c6662bc 100644
+index b5fc126..63cf222 100644
 --- a/src/lib/util/corealloc.h
 +++ b/src/lib/util/corealloc.h
-@@ -33,7 +33,40 @@
+@@ -38,7 +38,40 @@
  #define global_free(_ptr)                           do { delete _ptr; } while (0)
  #define global_free_array(_ptr)                     do { delete[] _ptr; } while (0)
  
@@ -91,10 +85,10 @@ index 2c1df6d..c6662bc 100644
 +
 +	template<class T>
 +	using remove_const_t = typename remove_const<T>::type;
- 
++
 +	template<class T>
 +	using remove_volatile_t = typename remove_volatile<T>::type;
-+
+ 
 +	template<class T>
 +	using remove_pointer_t = typename remove_pointer<T>::type;
 +
@@ -109,10 +103,19 @@ index 2c1df6d..c6662bc 100644
 +}
 +#endif
  
- template<typename _Tp, typename... _Args>
- inline _Tp* global_alloc_clear(_Args&&... __args)
+ template<typename T, typename... Params>
+ inline T* global_alloc_clear(Params &&... args)
+@@ -57,8 +90,6 @@ inline T* global_alloc_array_clear(std::size_t num)
+ 	return new(ptr) T[num]();
+ }
+ 
+-
+-
+ template<typename _Tp>
+ struct _MakeUniqClear
+ {
 diff --git a/src/lib/util/corestr.h b/src/lib/util/corestr.h
-index 94f13c4..6e08187 100644
+index 29f98d0..6f1381d 100644
 --- a/src/lib/util/corestr.h
 +++ b/src/lib/util/corestr.h
 @@ -14,6 +14,7 @@
@@ -120,11 +123,11 @@ index 94f13c4..6e08187 100644
  
  #include "osdcore.h"
 +#include "coretmpl.h"
- #include <string.h>
+ #include "strformat.h"
  
- 
+ #include <string>
 diff --git a/src/lib/util/coretmpl.h b/src/lib/util/coretmpl.h
-index 9201041..6882b46 100644
+index 9201041..607718a 100644
 --- a/src/lib/util/coretmpl.h
 +++ b/src/lib/util/coretmpl.h
 @@ -17,6 +17,10 @@
@@ -138,13 +141,18 @@ index 9201041..6882b46 100644
  
  #if defined(_MSC_VER) && (_MSC_VER < 1900)
  #include <yvals.h>
-@@ -29,6 +33,36 @@
+@@ -29,9 +33,40 @@
  #define assert(x) do { if (!(x)) { fprintf(stderr, "Assert: %s\n", #x); osd_break_into_debugger("Assertion failed"); } } while (0)
  #endif
+ 
+-
+ typedef std::vector<UINT8> dynamic_buffer;
  
 +#if defined(__APPLE__) || defined(NOTCPP14)
 +namespace std
 +{
++	typedef std::atomic<bool> atomic_bool;
++
 +	template <typename T, typename ... Args>
 +	auto make_unique(Args&&... args)
 +	-> typename std::enable_if<!std::is_array<T>::value, std::unique_ptr<T>>::type
@@ -173,8 +181,20 @@ index 9201041..6882b46 100644
 +}
 +#endif
  
- typedef std::vector<UINT8> dynamic_buffer;
+ // ======================> simple_list
  
+diff --git a/src/osd/modules/file/posixfile.h b/src/osd/modules/file/posixfile.h
+index 2339a52..bb9d15f 100644
+--- a/src/osd/modules/file/posixfile.h
++++ b/src/osd/modules/file/posixfile.h
+@@ -14,6 +14,7 @@
+ #include <cstdint>
+ #include <string>
+ 
++#include "coretmpl.h"
+ 
+ //============================================================
+ //  PROTOTYPES
 -- 
 2.4.3
 
