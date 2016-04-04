@@ -1,0 +1,329 @@
+From 3a1c1856d7cf49b8226b288aca2d39869b302307 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 3 Apr 2016 16:38:17 +0000
+Subject: [PATCH 12/17] optional joystick control for stargate, defender and
+ battlezone
+
+---
+ src/mame/audio/bzone.cpp      | 17 ++++++++++-
+ src/mame/drivers/bzone.cpp    | 19 +++++++++---
+ src/mame/drivers/williams.cpp | 71 +++++++++++++++++++++++++++++++++++++------
+ src/mame/includes/bzone.h     |  1 +
+ src/mame/includes/williams.h  |  2 ++
+ src/mame/machine/williams.cpp | 66 ++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 161 insertions(+), 15 deletions(-)
+
+diff --git a/src/mame/audio/bzone.cpp b/src/mame/audio/bzone.cpp
+index daf378e..baeabfd 100644
+--- a/src/mame/audio/bzone.cpp
++++ b/src/mame/audio/bzone.cpp
+@@ -385,6 +385,21 @@ static DISCRETE_SOUND_START(bzone)
+ 
+ DISCRETE_SOUND_END
+ 
++/* Translation table for one-joystick emulation */
++static UINT8 one_joy_trans[] =
++{
++	0x00,0x0A,0x05,0x00,0x06,0x02,0x04,0x00,
++	0x09,0x08,0x01,0x00,0x00,0x00,0x00,0x00
++};
++
++READ8_MEMBER(bzone_state::bzone_IN3_r)
++{
++	int res = (ioport("IN3")->read());
++	if (ioport("SELECT")->read() == 1)
++		res |= one_joy_trans[(ioport("FAKE")->read() & 0x0f)];
++	return res;
++}
++
+ WRITE8_MEMBER(bzone_state::bzone_sounds_w)
+ {
+ 	m_discrete->write(space, BZ_INPUT, data);
+@@ -399,7 +414,7 @@ MACHINE_CONFIG_FRAGMENT( bzone_audio )
+ 	MCFG_SPEAKER_STANDARD_MONO("mono")
+ 
+ 	MCFG_SOUND_ADD("pokey", POKEY, BZONE_MASTER_CLOCK / 8)
+-	MCFG_POKEY_ALLPOT_R_CB(IOPORT("IN3"))
++	MCFG_POKEY_ALLPOT_R_CB(READ8(bzone_state,bzone_IN3_r))
+ 	MCFG_POKEY_OUTPUT_RC(RES_K(10), CAP_U(0.015), 5.0)
+ 	MCFG_SOUND_ROUTE_EX(0, "discrete", 1.0, 0)
+ 
+diff --git a/src/mame/drivers/bzone.cpp b/src/mame/drivers/bzone.cpp
+index e3b43d4..380197d 100644
+--- a/src/mame/drivers/bzone.cpp
++++ b/src/mame/drivers/bzone.cpp
+@@ -417,15 +417,26 @@ static INPUT_PORTS_START( bzone )
+ 	BZONEDSW1
+ 
+ 	PORT_START("IN3")
+-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICKRIGHT_DOWN ) PORT_2WAY
+-	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICKRIGHT_UP ) PORT_2WAY
+-	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICKLEFT_DOWN ) PORT_2WAY
+-	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICKLEFT_UP ) PORT_2WAY
++	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICKRIGHT_DOWN ) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
++	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICKRIGHT_UP ) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
++	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICKLEFT_DOWN ) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
++	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICKLEFT_UP ) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
+ 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_BUTTON1 )
+ 	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_START1 )
+ 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_START2 )
+ 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNUSED )
+ 
++	PORT_START("SELECT")
++	PORT_CONFNAME( 0x01, 0x00, "Controller Type" )
++	PORT_CONFSETTING(    0x00, "Real" )
++	PORT_CONFSETTING(    0x01, "8-way Joystick" )
++
++	PORT_START("FAKE")
++	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++	PORT_BIT( 0x04, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++	PORT_BIT( 0x08, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++
+ 	BZONEADJ
+ INPUT_PORTS_END
+ 
+diff --git a/src/mame/drivers/williams.cpp b/src/mame/drivers/williams.cpp
+index 70f35c2..8f9b4b7 100644
+--- a/src/mame/drivers/williams.cpp
++++ b/src/mame/drivers/williams.cpp
+@@ -725,10 +725,12 @@ static INPUT_PORTS_START( defender )
+ 	PORT_BIT( 0x10, IP_ACTIVE_HIGH, IPT_START2 )
+ 	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_START1 )
+ 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_BUTTON5 ) PORT_NAME(DEF_STR( Reverse ))
+-	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN) PORT_2WAY
++	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
++	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_JOYSTICK_DOWN) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
+ 
+ 	PORT_START("IN1")
+-	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_2WAY
++	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_2WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x00)
++	PORT_BIT( 0x01, IP_ACTIVE_HIGH, IPT_JOYSTICK_UP ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
+ 	PORT_BIT( 0xfe, IP_ACTIVE_HIGH, IPT_UNKNOWN )
+ 
+ 	PORT_START("IN2")
+@@ -740,6 +742,15 @@ static INPUT_PORTS_START( defender )
+ 	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_COIN2 )
+ 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_TILT )
+ 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
++
++	PORT_START("SELECT")
++	PORT_CONFNAME( 0x01, 0x00, "Controller Type" )
++	PORT_CONFSETTING(    0x00, "Real" )
++	PORT_CONFSETTING(    0x01, "8-way Joystick" )
++
++	PORT_START("FAKE")      /* for fake 8-way control */
++	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
+ INPUT_PORTS_END
+ 
+ 
+@@ -895,6 +906,15 @@ static INPUT_PORTS_START( stargate )
+ 	PORT_BIT( 0x20, IP_ACTIVE_HIGH, IPT_COIN2 )
+ 	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_TILT )
+ 	PORT_BIT( 0x80, IP_ACTIVE_HIGH, IPT_UNKNOWN )
++
++	PORT_START("SELECT")
++	PORT_CONFNAME( 0x01, 0x00, "Controller Type" )
++	PORT_CONFSETTING(    0x00, "Real" )
++	PORT_CONFSETTING(    0x01, "8-way Joystick" )
++
++	PORT_START("FAKE")      /* for fake 8-way control */
++	PORT_BIT( 0x02, IP_ACTIVE_HIGH, IPT_JOYSTICK_RIGHT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
++	PORT_BIT( 0x40, IP_ACTIVE_HIGH, IPT_JOYSTICK_LEFT ) PORT_8WAY PORT_CONDITION("SELECT",0x01,EQUALS,0x01)
+ INPUT_PORTS_END
+ 
+ 
+@@ -1485,6 +1505,14 @@ static MACHINE_CONFIG_START( williams, williams_state )
+ MACHINE_CONFIG_END
+ 
+ 
++static MACHINE_CONFIG_DERIVED( stargate, williams )
++
++	/* pia */
++	MCFG_DEVICE_MODIFY("pia_0")
++	MCFG_PIA_READPA_HANDLER(READ8(williams_state, stargate_input_port_0_r))
++MACHINE_CONFIG_END
++
++
+ static MACHINE_CONFIG_DERIVED( defender, williams )
+ 
+ 	/* basic machine hardware */
+@@ -1507,6 +1535,26 @@ static MACHINE_CONFIG_DERIVED( defender, williams )
+ 
+ 	MCFG_SCREEN_MODIFY("screen")
+ 	MCFG_SCREEN_VISIBLE_AREA(12, 304-1, 7, 247-1)
++
++	/* pia */
++	MCFG_DEVICE_MODIFY("pia_0")
++	MCFG_PIA_READPA_HANDLER(READ8(williams_state, defender_input_port_0_r))
++MACHINE_CONFIG_END
++
++
++static MACHINE_CONFIG_DERIVED( mayday, defender ) // needs the defender control hack removing
++
++	/* pia */
++	MCFG_DEVICE_MODIFY("pia_0")
++	MCFG_PIA_READPA_HANDLER(IOPORT("IN0"))
++MACHINE_CONFIG_END
++
++
++static MACHINE_CONFIG_DERIVED( colony7, defender ) // needs the defender control hack removing
++
++	/* pia */
++	MCFG_DEVICE_MODIFY("pia_0")
++	MCFG_PIA_READPA_HANDLER(IOPORT("IN0"))
+ MACHINE_CONFIG_END
+ 
+ 
+@@ -1514,6 +1562,10 @@ static MACHINE_CONFIG_DERIVED( jin, defender ) // needs a different screen size
+ 	/* basic machine hardware */
+ 	MCFG_SCREEN_MODIFY("screen")
+ 	MCFG_SCREEN_VISIBLE_AREA(0, 315, 7, 247-1)
++
++	/* pia */
++	MCFG_DEVICE_MODIFY("pia_0")
++	MCFG_PIA_READPA_HANDLER(IOPORT("IN0"))
+ MACHINE_CONFIG_END
+ 
+ 
+@@ -3153,20 +3205,19 @@ GAME( 1980, defcmnd,    defender, defender,       defender, williams_state, defe
+ GAME( 1981, defence,    defender, defender,       defender, williams_state, defender, ROT0,   "bootleg (Outer Limits)", "Defence Command (Defender bootleg)", MACHINE_SUPPORTS_SAVE )
+ GAME( 1981, startrkd,   defender, defender,       defender, williams_state, defender, ROT0,   "bootleg", "Star Trek (Defender bootleg)", MACHINE_SUPPORTS_SAVE )
+ 
+-GAME( 1980, mayday,     0,        defender,       mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 1)", MACHINE_SUPPORTS_SAVE ) // original by Hoei, which one of these 3 sets is bootleg/licensed/original is unknown
+-GAME( 1980, maydaya,    mayday,   defender,       mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 2)", MACHINE_SUPPORTS_SAVE )
+-GAME( 1980, maydayb,    mayday,   defender,       mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 3)", MACHINE_SUPPORTS_SAVE )
+-GAME( 1980, batlzone,   mayday,   defender,       mayday, williams_state,   mayday,   ROT0,   "bootleg (Video Game)", "Battle Zone (bootleg of Mayday)", MACHINE_SUPPORTS_SAVE )
+-
+-GAME( 1981, colony7,    0,        defender,       colony7, williams_state,  defender, ROT270, "Taito", "Colony 7 (set 1)", MACHINE_SUPPORTS_SAVE )
+-GAME( 1981, colony7a,   colony7,  defender,       colony7, williams_state,  defender, ROT270, "Taito", "Colony 7 (set 2)", MACHINE_SUPPORTS_SAVE )
++GAME( 1980, mayday,     0,        mayday,         mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 1)", MACHINE_SUPPORTS_SAVE ) // original by Hoei, which one of these 3 sets is bootleg/licensed/original is unknown
++GAME( 1980, maydaya,    mayday,   mayday,         mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 2)", MACHINE_SUPPORTS_SAVE )
++GAME( 1980, maydayb,    mayday,   mayday,         mayday, williams_state,   mayday,   ROT0,   "Hoei", "Mayday (set 3)", MACHINE_SUPPORTS_SAVE )
++GAME( 1980, batlzone,   mayday,   mayday,         mayday, williams_state,   mayday,   ROT0,   "bootleg (Video Game)", "Battle Zone (bootleg of Mayday)", MACHINE_SUPPORTS_SAVE )
++GAME( 1981, colony7,    0,        colony7,        colony7, williams_state,  defender, ROT270, "Taito", "Colony 7 (set 1)", MACHINE_SUPPORTS_SAVE )
++GAME( 1981, colony7a,   colony7,  colony7,        colony7, williams_state,  defender, ROT270, "Taito", "Colony 7 (set 2)", MACHINE_SUPPORTS_SAVE )
+ 
+ GAME( 1982, jin,        0,        jin,            jin, williams_state,      defender, ROT90,  "Falcon", "Jin", MACHINE_SUPPORTS_SAVE )
+ 
+ 
+ 
+ /* Standard Williams hardware */
+-GAME( 1981, stargate,   0,        williams,       stargate, williams_state, stargate, ROT0,   "Williams / Vid Kidz", "Stargate", MACHINE_SUPPORTS_SAVE )
++GAME( 1981, stargate,   0,        stargate,       stargate, williams_state, stargate, ROT0,   "Williams / Vid Kidz", "Stargate", MACHINE_SUPPORTS_SAVE )
+ 
+ GAME( 1982, robotron,   0,        williams,       robotron, williams_state, robotron, ROT0,   "Williams / Vid Kidz", "Robotron: 2084 (Solid Blue label)", MACHINE_SUPPORTS_SAVE )
+ GAME( 1982, robotronyo, robotron, williams,       robotron, williams_state, robotron, ROT0,   "Williams / Vid Kidz", "Robotron: 2084 (Yellow/Orange label)", MACHINE_SUPPORTS_SAVE )
+diff --git a/src/mame/includes/bzone.h b/src/mame/includes/bzone.h
+index 9889464..d40e9a2 100644
+--- a/src/mame/includes/bzone.h
++++ b/src/mame/includes/bzone.h
+@@ -42,6 +42,7 @@ public:
+ 	DECLARE_MACHINE_START(redbaron);
+ 	INTERRUPT_GEN_MEMBER(bzone_interrupt);
+ 	DECLARE_WRITE8_MEMBER(bzone_sounds_w);
++	DECLARE_READ8_MEMBER(bzone_IN3_r);
+ };
+ 
+ 
+diff --git a/src/mame/includes/williams.h b/src/mame/includes/williams.h
+index ad21165..54b45fc 100644
+--- a/src/mame/includes/williams.h
++++ b/src/mame/includes/williams.h
+@@ -94,6 +94,8 @@ public:
+ 	DECLARE_WRITE_LINE_MEMBER(williams_port_select_w);
+ 	DECLARE_READ8_MEMBER(williams_49way_port_0_r);
+ 	DECLARE_READ8_MEMBER(williams_input_port_49way_0_5_r);
++	DECLARE_READ8_MEMBER(defender_input_port_0_r);
++	DECLARE_READ8_MEMBER(stargate_input_port_0_r);
+ 	DECLARE_WRITE_LINE_MEMBER(lottofun_coin_lock_w);
+ 
+ 	void state_save_register();
+diff --git a/src/mame/machine/williams.cpp b/src/mame/machine/williams.cpp
+index 9f6a861..5736315 100644
+--- a/src/mame/machine/williams.cpp
++++ b/src/mame/machine/williams.cpp
+@@ -483,6 +483,35 @@ WRITE8_MEMBER(williams2_state::williams2_7segment_w)
+  *
+  *************************************/
+ 
++READ8_MEMBER(williams_state::defender_input_port_0_r)
++{
++	/* read the standard keys and the cheat keys */
++
++	int keys = ioport("IN0")->read();
++
++	if (ioport("SELECT")->read() == 1)
++	{
++		int altkeys = ioport("FAKE")->read();
++
++		/* modify the standard keys with the cheat keys */
++		if (altkeys)
++		{
++			keys |= altkeys;
++			address_space &cpu0space = m_maincpu->space(AS_PROGRAM);
++			UINT8 val = cpu0space.read_byte(0xa0bb);
++			if (val == 0xfd)
++			{
++				if (keys & 0x02)
++					keys = (keys & 0xfd) | 0x40;
++				else if (keys & 0x40)
++					keys = (keys & 0xbf) | 0x02;
++			}
++		}
++	}
++
++	return keys;
++}
++
+ MACHINE_START_MEMBER(williams_state,defender)
+ {
+ }
+@@ -513,6 +542,43 @@ WRITE8_MEMBER(williams_state::defender_bank_select_w)
+ 
+ /*************************************
+  *
++ *  Stargate-specific routines
++ *
++ *************************************/
++
++READ8_MEMBER(williams_state::stargate_input_port_0_r)
++{
++	/* read the standard keys and the cheat keys */
++
++	int keys = ioport("IN0")->read();
++
++	if (ioport("SELECT")->read() == 1)
++	{
++		int altkeys = ioport("FAKE")->read();
++
++		/* modify the standard keys with the cheat keys */
++		if (altkeys)
++		{
++			keys |= altkeys;
++			address_space &cpu0space = m_maincpu->space(AS_PROGRAM);
++			UINT8 val = cpu0space.read_byte(0x9c92);
++			if (val == 0xfd)
++			{
++				if (keys & 0x02)
++					keys = (keys & 0xfd) | 0x40;
++				else if (keys & 0x40)
++					keys = (keys & 0xbf) | 0x02;
++			}
++		}
++	}
++
++	return keys;
++}
++
++
++
++/*************************************
++ *
+  *  Mayday-specific routines
+  *
+  *************************************/
+-- 
+2.8.0
+

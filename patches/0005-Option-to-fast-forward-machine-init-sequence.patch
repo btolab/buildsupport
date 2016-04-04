@@ -1,0 +1,339 @@
+From cd9ec7af0f31427e77f233aa90bb0b0ad1c42308 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Fri, 1 Apr 2016 16:59:30 +0000
+Subject: [PATCH 05/17] Option to fast forward machine init sequence
+
+Options:
+    faststart:
+        0 = disable
+	1 = enable; use first value from faststart.dat
+	2 = enable*; use second value from faststart.dat
+	             (fall back to first)
+
+    faststart_skip:
+        0 = disable
+	1 = enable; do not render frames or audio
+
+Dat file: faststart.dat
+    One value per line. Multiple roms may be specified consecutively
+    before the frame skip value(s).
+
+    Sample:
+
+        1941:
+	1040
+
+	pacman:
+	puckman:
+	mspacman:
+	mspacpls:
+	294
+
+	sfex2:
+	600
+	1900
+
+	strhoop:
+	710
+	1000
+
+* Intended for skipping more than just the init sequence.
+
+Credit: inspired by similar functionality of AdvanceMame!
+---
+ scripts/src/emu.lua   |   2 +
+ src/emu/emuopts.cpp   |   2 +
+ src/emu/emuopts.h     |   4 ++
+ src/emu/faststart.cpp | 111 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/emu/faststart.h   |  19 +++++++++
+ src/emu/machine.cpp   |   3 ++
+ src/emu/ui/ui.cpp     |   2 +-
+ src/emu/video.cpp     |   9 +++-
+ src/emu/video.h       |   4 ++
+ 9 files changed, 154 insertions(+), 2 deletions(-)
+ create mode 100644 src/emu/faststart.cpp
+ create mode 100644 src/emu/faststart.h
+
+diff --git a/scripts/src/emu.lua b/scripts/src/emu.lua
+index efe30ed..cb47a6b 100644
+--- a/scripts/src/emu.lua
++++ b/scripts/src/emu.lua
+@@ -134,6 +134,8 @@ files {
+ 	MAME_DIR .. "src/emu/emuopts.h",
+ 	MAME_DIR .. "src/emu/emupal.cpp",
+ 	MAME_DIR .. "src/emu/emupal.h",
++	MAME_DIR .. "src/emu/faststart.cpp",
++	MAME_DIR .. "src/emu/faststart.h",
+ 	MAME_DIR .. "src/emu/fileio.cpp",
+ 	MAME_DIR .. "src/emu/fileio.h",
+ 	MAME_DIR .. "src/emu/hash.cpp",
+diff --git a/src/emu/emuopts.cpp b/src/emu/emuopts.cpp
+index 8db2506..8816eec 100644
+--- a/src/emu/emuopts.cpp
++++ b/src/emu/emuopts.cpp
+@@ -87,6 +87,8 @@ const options_entry emu_options::s_option_entries[] =
+ 	{ OPTION_SLEEP,                                      "1",         OPTION_BOOLEAN,    "enable sleeping, which gives time back to other applications when idle" },
+ 	{ OPTION_SPEED "(0.01-100)",                         "1.0",       OPTION_FLOAT,      "controls the speed of gameplay, relative to realtime; smaller numbers are slower" },
+ 	{ OPTION_REFRESHSPEED ";rs",                         "0",         OPTION_BOOLEAN,    "automatically adjusts the speed of gameplay to keep the refresh rate lower than the screen" },
++	{ OPTION_FASTSTART ";fs(0-2)",                       "1",         OPTION_INTEGER,    "fast forward machine startup. 0=Off 1=On 2=Extended." },
++	{ OPTION_FASTSTART_SKIP ";fss",                      "1",         OPTION_BOOLEAN,    "do not render frames during fast start." },
+ 
+ 	// render options
+ 	{ nullptr,                                              nullptr,        OPTION_HEADER,     "CORE RENDER OPTIONS" },
+diff --git a/src/emu/emuopts.h b/src/emu/emuopts.h
+index 29e76b0..d37c760 100644
+--- a/src/emu/emuopts.h
++++ b/src/emu/emuopts.h
+@@ -97,6 +97,8 @@ enum
+ #define OPTION_SLEEP                "sleep"
+ #define OPTION_SPEED                "speed"
+ #define OPTION_REFRESHSPEED         "refreshspeed"
++#define OPTION_FASTSTART            "faststart"
++#define OPTION_FASTSTART_SKIP       "faststart_skip"
+ 
+ // core render options
+ #define OPTION_KEEPASPECT           "keepaspect"
+@@ -291,6 +293,8 @@ public:
+ 	bool sleep() const { return m_sleep; }
+ 	float speed() const { return float_value(OPTION_SPEED); }
+ 	bool refresh_speed() const { return m_refresh_speed; }
++	int fast_start() const { return int_value(OPTION_FASTSTART); }
++	bool fast_start_skip() const { return bool_value(OPTION_FASTSTART_SKIP); }
+ 
+ 	// core render options
+ 	bool keep_aspect() const { return bool_value(OPTION_KEEPASPECT); }
+diff --git a/src/emu/faststart.cpp b/src/emu/faststart.cpp
+new file mode 100644
+index 0000000..a5e713c
+--- /dev/null
++++ b/src/emu/faststart.cpp
+@@ -0,0 +1,111 @@
++/***************************************************************************
++
++    faststart.c
++
++    Manages faststart option.
++
++    This is an unofficial version based on MAME.
++    Please do not send any reports from this build to the MAME team.
++
++***************************************************************************/
++
++#include "emu.h"
++#include "emuopts.h"
++#include "faststart.h"
++
++#define MAX_CONFIG_LINE_SIZE 16
++
++static emu_timer *timer;
++static emu_timer *mutetimer;
++static int faststart_frames;
++static int faststart_type;
++
++/*  matching_game_name is used to skip over lines until we find <gamename>: */
++static int matching_game_name (const char *pBuf, const char *name)
++{
++	while (*name)
++	{
++		if (*name++ != *pBuf++)
++			return 0;
++	}
++	return (*pBuf == ':');
++}
++
++void faststart_load (running_machine &machine)
++{
++	const char *name = machine.system().name;
++
++	emu_file f(machine.ui().options().history_path(), OPEN_FLAG_READ);
++
++	if(f.open("faststart", ".dat") == osd_file::error::NONE)
++	{
++		char buffer[MAX_CONFIG_LINE_SIZE];
++		enum { FIND_NAME, FIND_DATA, FIND_NEXT_DATA } mode;
++		mode = FIND_NAME;
++
++		while (f.gets(buffer, MAX_CONFIG_LINE_SIZE))
++		{
++			if (buffer[0] == '#')
++				continue;
++
++			if (mode == FIND_NAME)
++			{
++				if (matching_game_name(buffer, name))
++					mode = FIND_DATA;
++			}
++			else if (atoi(buffer) > 0)
++			{
++				faststart_frames = atoi(buffer);
++
++				if (faststart_type == 2 && mode == FIND_DATA)
++				{
++					mode = FIND_NEXT_DATA;
++					continue;
++				}
++				break;
++			}
++			else if (mode == FIND_NEXT_DATA)
++			{
++				break;
++			}
++		}
++		f.close();
++	}
++}
++
++static TIMER_CALLBACK( faststart_done )
++{
++	timer->enable(false);
++	machine.sound().system_mute(false);
++	machine.video().set_faststart(false);
++}
++
++static TIMER_CALLBACK( faststart_mute )
++{
++	mutetimer->enable(false);
++	machine.sound().system_mute(true);
++}
++
++void faststart_init (running_machine &machine)
++{
++	faststart_type = machine.options().fast_start();
++
++	if (faststart_type > 0 && faststart_type < 3)
++	{
++		faststart_load(machine);
++
++		if (faststart_frames > 0)
++		{
++			attotime faststart_time = (machine.first_screen()->frame_period() * faststart_frames);
++			timer = machine.scheduler().timer_alloc(FUNC(faststart_done));
++			timer->adjust(faststart_time, 0, machine.first_screen()->frame_period());
++			machine.video().set_faststart(true);
++			if (machine.options().fast_start_skip())
++			{
++				mutetimer = machine.scheduler().timer_alloc(FUNC(faststart_mute));
++				mutetimer->adjust(attotime::zero);
++			}
++		}
++	} else if (faststart_type != 0)
++		osd_printf_error("Invalid value '%d' for option 'faststart'.\n", faststart_type);
++}
+diff --git a/src/emu/faststart.h b/src/emu/faststart.h
+new file mode 100644
+index 0000000..89f0bea
+--- /dev/null
++++ b/src/emu/faststart.h
+@@ -0,0 +1,19 @@
++/***************************************************************************
++
++    faststart.h
++
++    Manages faststart option.
++
++    This is an unofficial version based on MAME.
++    Please do not send any reports from this build to the MAME team.
++
++***************************************************************************/
++
++#pragma once
++
++#ifndef __FASTSTART_H__
++#define __FASTSTART_H__
++
++void faststart_init( running_machine &machine );
++
++#endif	/* __FASTSTART_H__ */
+diff --git a/src/emu/machine.cpp b/src/emu/machine.cpp
+index 726979c..d2eb3b5 100644
+--- a/src/emu/machine.cpp
++++ b/src/emu/machine.cpp
+@@ -84,6 +84,7 @@
+ #include "image.h"
+ #include "luaengine.h"
+ #include "network.h"
++#include "faststart.h"
+ #include <time.h>
+ 
+ #if defined(EMSCRIPTEN)
+@@ -344,6 +345,8 @@ int running_machine::run(bool firstrun)
+ 		// load the configuration settings and NVRAM
+ 		m_configuration->load_settings();
+ 
++		faststart_init(*this);
++
+ 		// disallow save state registrations starting here.
+ 		// Don't do it earlier, config load can create network
+ 		// devices with timers.
+diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
+index 0b15f24..7c54e67 100644
+--- a/src/emu/ui/ui.cpp
++++ b/src/emu/ui/ui.cpp
+@@ -1699,7 +1699,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
+ 		machine.video().set_fastforward(true);
+ 		machine.ui().show_fps_temp(0.5);
+ 	}
+-	else
++	else if (!machine.video().faststart())
+ 		machine.video().set_fastforward(false);
+ 
+ 	return 0;
+diff --git a/src/emu/video.cpp b/src/emu/video.cpp
+index c3090bc..a0057ca 100644
+--- a/src/emu/video.cpp
++++ b/src/emu/video.cpp
+@@ -88,6 +88,8 @@ video_manager::video_manager(running_machine &machine)
+ 		m_throttled(machine.options().throttle()),
+ 		m_throttle_rate(1.0f),
+ 		m_fastforward(false),
++		m_faststart(false),
++		m_faststart_skip(machine.options().fast_start_skip()),
+ 		m_seconds_to_run(machine.options().seconds_to_run()),
+ 		m_auto_frameskip(machine.options().auto_frameskip()),
+ 		m_speed(original_speed_setting()),
+@@ -211,7 +213,12 @@ void video_manager::frame_update(bool debug)
+ 	bool skipped_it = m_skipping_this_frame;
+ 	if (phase == MACHINE_PHASE_RUNNING && (!machine().paused() || machine().options().update_in_pause()))
+ 	{
+-		bool anything_changed = finish_screen_updates();
++		bool anything_changed = false;
++
++		if (m_faststart && m_faststart_skip)
++			anything_changed = true;
++		else
++			anything_changed = finish_screen_updates();
+ 
+ 		// if none of the screens changed and we haven't skipped too many frames in a row,
+ 		// mark this frame as skipped to prevent throttling; this helps for games that
+diff --git a/src/emu/video.h b/src/emu/video.h
+index 019b2b0..259b4d8 100644
+--- a/src/emu/video.h
++++ b/src/emu/video.h
+@@ -67,6 +67,7 @@ public:
+ 	float throttle_rate() const { return m_throttle_rate; }
+ 	bool fastforward() const { return m_fastforward; }
+ 	bool is_recording() const { return (m_mng_file || m_avi_file); }
++	bool faststart() const { return m_faststart; }
+ 
+ 	// setters
+ 	void set_frameskip(int frameskip);
+@@ -74,6 +75,7 @@ public:
+ 	void set_throttle_rate(float throttle_rate) { m_throttle_rate = throttle_rate; }
+ 	void set_fastforward(bool ffwd = true) { m_fastforward = ffwd; }
+ 	void set_output_changed() { m_output_changed = true; }
++	void set_faststart(bool fs = true) { m_faststart = m_fastforward = fs; }
+ 
+ 	// misc
+ 	void toggle_throttle();
+@@ -160,6 +162,8 @@ private:
+ 	bool                m_throttled;                // flag: TRUE if we're currently throttled
+ 	float               m_throttle_rate;            // target rate for throttling
+ 	bool                m_fastforward;              // flag: TRUE if we're currently fast-forwarding
++	bool                m_faststart;                // flag: TRUE if we're currently fast-starting
++	bool                m_faststart_skip;           // skip frame rendering
+ 	UINT32              m_seconds_to_run;           // number of seconds to run before quitting
+ 	bool                m_auto_frameskip;           // flag: TRUE if we're automatically frameskipping
+ 	UINT32              m_speed;                    // overall speed (*1000)
+-- 
+2.8.0
+

@@ -1,0 +1,71 @@
+From b41bf2585f1d98fce926bfe0c4d3cb0a448ed308 Mon Sep 17 00:00:00 2001
+From: Miodrag Milanovic <mmicko@gmail.com>
+Date: Sat, 2 Apr 2016 17:48:31 +0200
+Subject: [PATCH 10/17] Added PRECOMPILE=0 so in conjunction with ccache it
+ gives better compile speed (nw)
+
+---
+ makefile          |  5 +++++
+ scripts/genie.lua | 16 +++++++++++++---
+ 2 files changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/makefile b/makefile
+index f9f6c2f..744f262 100644
+--- a/makefile
++++ b/makefile
+@@ -98,6 +98,7 @@
+ # MSBUILD = 1
+ # USE_LIBUV = 1
+ # IGNORE_BAD_LOCALISATION=1
++# PRECOMPILE = 0
+ 
+ ifdef PREFIX_MAKEFILE
+ include $(PREFIX_MAKEFILE)
+@@ -712,6 +713,10 @@ ifdef USE_LIBUV
+ PARAMS += --USE_LIBUV='$(USE_LIBUV)'
+ endif
+ 
++ifdef PRECOMPILE
++PARAMS += --precompile='$(PRECOMPILE)'
++endif
++
+ #-------------------------------------------------
+ # All scripts
+ #-------------------------------------------------
+diff --git a/scripts/genie.lua b/scripts/genie.lua
+index 21e1dec..12c23b0 100644
+--- a/scripts/genie.lua
++++ b/scripts/genie.lua
+@@ -16,6 +16,14 @@ MAME_DIR = (path.getabsolute("..") .. "/")
+ local MAME_BUILD_DIR = (MAME_DIR .. _OPTIONS["build-dir"] .. "/")
+ local naclToolchain = ""
+ 
++newoption {
++	trigger = "precompile",
++	description = "Precompiled headers generation.",
++	allowed = {
++		{ "0",   "Disabled"     },
++		{ "1",   "Enabled"      },
++	}
++}
+ 
+ function backtick(cmd)
+ 	result = string.gsub(string.gsub(os.outputof(cmd), "\r?\n$", ""), " $", "")
+@@ -57,9 +65,11 @@ function layoutbuildtask(_folder, _name)
+ end
+ 
+ function precompiledheaders()
+-	configuration { "not xcode4" }
+-		pchheader("emu.h")
+-	configuration { }
++	if _OPTIONS["precompile"]==nil or (_OPTIONS["precompile"]~=nil and _OPTIONS["precompile"]=="1") then
++		configuration { "not xcode4" }
++			pchheader("emu.h")
++		configuration { }
++	end
+ end
+ 
+ function addprojectflags()
+-- 
+2.8.0
+

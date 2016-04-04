@@ -1,0 +1,142 @@
+From 24d3fdc5001956001f28b6796eca57f21b27bd84 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 3 Apr 2016 19:14:09 +0000
+Subject: [PATCH 16/17] brand to uxme
+
+---
+ scripts/build/verinfo.py       | 24 ++++++++++++------------
+ scripts/target/mame/arcade.lua |  3 +++
+ scripts/target/mame/mame.lua   |  3 +++
+ scripts/target/mame/mess.lua   |  3 +++
+ scripts/target/mame/tiny.lua   |  2 ++
+ src/mame/mame.cpp              |  6 +++---
+ src/mame/mess.cpp              |  6 +++---
+ 7 files changed, 29 insertions(+), 18 deletions(-)
+
+diff --git a/scripts/build/verinfo.py b/scripts/build/verinfo.py
+index a73d8ad..43f1211 100644
+--- a/scripts/build/verinfo.py
++++ b/scripts/build/verinfo.py
+@@ -88,22 +88,22 @@ else:
+ if build == "mess":
+     # MESS
+     author = "MESS Team"
+-    comments = "Multi Emulation Super System"
+-    company_name = "MESS Team"
+-    file_description = "Multi Emulation Super System"
+-    internal_name = "MESS"
+-    original_filename = "MESS"
+-    product_name = "MESS"
++    comments = "Unofficial eXtended Super System"
++    company_name = "UXSS Team"
++    file_description = "Unofficial eXtended Super System"
++    internal_name = "UXSS"
++    original_filename = "UXSS"
++    product_name = "UXSS"
+     bundle_identifier = "org.mamedev.mess"
+ else:
+     # MAME
+     author = "Nicola Salmoria and the MAME Team"
+-    comments = "Multiple Arcade Machine Emulator"
+-    company_name = "MAME Team"
+-    file_description = "Multiple Arcade Machine Emulator"
+-    internal_name = "MAME" if build == "mame" else build
+-    original_filename = "MAME" if build == "mame" else build
+-    product_name = "MAME" if build == "mame" else build
++    comments = "Unofficial eXtended Machine Emulator"
++    company_name = "UXME Team"
++    file_description = "Unofficial eXtended Machine Emulator"
++    internal_name = "UXME" if build == "mame" else build
++    original_filename = "UXME" if build == "mame" else build
++    product_name = "UXME" if build == "mame" else build
+     bundle_identifier = "org.mamedev." + build
+ 
+ legal_copyright = "Copyright Nicola Salmoria and the MAME team"
+diff --git a/scripts/target/mame/arcade.lua b/scripts/target/mame/arcade.lua
+index f5df5c7..4aae017 100644
+--- a/scripts/target/mame/arcade.lua
++++ b/scripts/target/mame/arcade.lua
+@@ -662,6 +662,9 @@ BUSES["VECTREX"] = true
+ --------------------------------------------------
+ 
+ function linkProjects_mame_arcade(_target, _subtarget)
++	configuration { }
++		targetname("uxme" .. _subtarget)
++
+ 	links {
+ 		"acorn",
+ 		"alba",
+diff --git a/scripts/target/mame/mame.lua b/scripts/target/mame/mame.lua
+index b736048..d6aad57 100644
+--- a/scripts/target/mame/mame.lua
++++ b/scripts/target/mame/mame.lua
+@@ -20,4 +20,7 @@ end
+ function linkProjects_mame_mame(_target, _subtarget)
+ 	linkProjects_mame_arcade(_target, _subtarget)
+ 	linkProjects_mame_mess(_target, _subtarget)
++
++	configuration { }
++		targetname("uxme")
+ end
+diff --git a/scripts/target/mame/mess.lua b/scripts/target/mame/mess.lua
+index 4f5c1ec..45cf3f4 100644
+--- a/scripts/target/mame/mess.lua
++++ b/scripts/target/mame/mess.lua
+@@ -681,6 +681,9 @@ BUSES["ZORRO"] = true
+ -- the list of drivers
+ --------------------------------------------------
+ function linkProjects_mame_mess(_target, _subtarget)
++	configuration { }
++		targetname("uxme" .. _subtarget)
++
+ 	links {
+ 		"acorn",
+ 		"act",
+diff --git a/scripts/target/mame/tiny.lua b/scripts/target/mame/tiny.lua
+index 36b4032..1202763 100644
+--- a/scripts/target/mame/tiny.lua
++++ b/scripts/target/mame/tiny.lua
+@@ -155,4 +155,6 @@ function linkProjects_mame_tiny(_target, _subtarget)
+ 	links {
+ 		"mame_tiny",
+ 	}
++	configuration { }
++		targetname("uxme" .. _subtarget)
+ end
+diff --git a/src/mame/mame.cpp b/src/mame/mame.cpp
+index 9dc8d96..fcf3171 100644
+--- a/src/mame/mame.cpp
++++ b/src/mame/mame.cpp
+@@ -10,9 +10,9 @@
+ 
+ #include "emu.h"
+ 
+-#define APPNAME                 "MAME"
+-#define APPNAME_LOWER           "mame"
+-#define CONFIGNAME              "mame"
++#define APPNAME                 "UXME"
++#define APPNAME_LOWER           "uxme"
++#define CONFIGNAME              "uxme"
+ #define COPYRIGHT               "Copyright Nicola Salmoria\nand the MAME team\nhttp://mamedev.org"
+ #define COPYRIGHT_INFO          "Copyright Nicola Salmoria and the MAME team"
+ 
+diff --git a/src/mame/mess.cpp b/src/mame/mess.cpp
+index 160f777..4a54b9c 100644
+--- a/src/mame/mess.cpp
++++ b/src/mame/mess.cpp
+@@ -10,9 +10,9 @@
+ 
+ #include "emu.h"
+ 
+-#define APPNAME                 "MESS"
+-#define APPNAME_LOWER           "mess"
+-#define CONFIGNAME              "mess"
++#define APPNAME                 "UXSS"
++#define APPNAME_LOWER           "uxss"
++#define CONFIGNAME              "uxss"
+ #define COPYRIGHT               "Copyright Nicola Salmoria\nand the MAME team\nhttp://mamedev.org"
+ #define COPYRIGHT_INFO          "Copyright Nicola Salmoria and the MAME team"
+ 
+-- 
+2.8.0
+

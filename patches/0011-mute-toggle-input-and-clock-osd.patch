@@ -1,0 +1,159 @@
+From 90821b9dff3f315f7488cdf41f02e507653606d0 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 3 Apr 2016 16:29:05 +0000
+Subject: [PATCH 11/17] mute toggle input and clock osd
+
+---
+ src/emu/inpttype.h |  2 ++
+ src/emu/ioport.h   |  2 ++
+ src/emu/sound.cpp  |  2 +-
+ src/emu/ui/ui.cpp  | 43 +++++++++++++++++++++++++++++++++++++++++++
+ src/emu/ui/ui.h    |  4 ++++
+ 5 files changed, 52 insertions(+), 1 deletion(-)
+
+diff --git a/src/emu/inpttype.h b/src/emu/inpttype.h
+index ff2ffbc..b1b0297 100644
+--- a/src/emu/inpttype.h
++++ b/src/emu/inpttype.h
+@@ -758,6 +758,8 @@ void construct_core_types_UI(simple_list<input_type_entry> &typelist)
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_LOAD_STATE,       "Load State",             input_seq(KEYCODE_F7, input_seq::not_code, KEYCODE_LSHIFT) )
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_TAPE_START,       "UI (First) Tape Start",  input_seq(KEYCODE_F2, input_seq::not_code, KEYCODE_LSHIFT) )
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_TAPE_STOP,        "UI (First) Tape Stop",   input_seq(KEYCODE_F2, KEYCODE_LSHIFT) )
++	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_SHOW_CLOCK,       "Show Current Time",      input_seq(KEYCODE_G, KEYCODE_LSHIFT) )
++	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_MUTE,             "Toggle Mute",            input_seq(KEYCODE_LCONTROL, KEYCODE_M) )
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_DATS,             "UI External DAT View",   input_seq(KEYCODE_LALT, KEYCODE_D) )
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_FAVORITES,        "UI Add/Remove favorites",input_seq(KEYCODE_LALT, KEYCODE_F) )
+ 	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_UP_FILTER,        nullptr,                  input_seq() )
+diff --git a/src/emu/ioport.h b/src/emu/ioport.h
+index c7fbd8d..1c14ad5 100644
+--- a/src/emu/ioport.h
++++ b/src/emu/ioport.h
+@@ -354,6 +354,8 @@ enum ioport_type
+ 		IPT_UI_LOAD_STATE,
+ 		IPT_UI_TAPE_START,
+ 		IPT_UI_TAPE_STOP,
++		IPT_UI_SHOW_CLOCK,
++		IPT_UI_MUTE,
+ 		IPT_UI_DATS,
+ 		IPT_UI_FAVORITES,
+ 		IPT_UI_UP_FILTER,
+diff --git a/src/emu/sound.cpp b/src/emu/sound.cpp
+index 47e7dcc..b833bf6 100644
+--- a/src/emu/sound.cpp
++++ b/src/emu/sound.cpp
+@@ -886,7 +886,7 @@ sound_stream *sound_manager::stream_alloc(device_t &device, int inputs, int outp
+ void sound_manager::set_attenuation(int attenuation)
+ {
+ 	m_attenuation = attenuation;
+-	machine().osd().set_mastervolume(m_muted ? -32 : m_attenuation);
++	machine().osd().set_mastervolume(m_muted ? -48 : m_attenuation);
+ }
+ 
+ 
+diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
+index c4cbf7e..9e3e25f 100644
+--- a/src/emu/ui/ui.cpp
++++ b/src/emu/ui/ui.cpp
+@@ -23,6 +23,7 @@
+ #include "ui/sliders.h"
+ #include "ui/viewgfx.h"
+ #include "imagedev/cassette.h"
++#include <time.h>
+ #include "image.h"
+ 
+ 
+@@ -286,6 +287,7 @@ void ui_manager::init()
+ 	m_popup_text_end = 0;
+ 	m_use_natural_keyboard = false;
+ 	m_mouse_arrow_texture = nullptr;
++	m_show_clock = false;
+ 	m_show_timecode_counter = false;
+ 	m_show_timecode_total = false;
+ 	m_load_save_hold = false;
+@@ -959,6 +961,29 @@ bool ui_manager::show_fps_counter()
+ 	return result;
+ }
+ 
++bool ui_manager::show_clock() const
++{
++	return m_show_clock;
++}
++
++void ui_manager::set_show_clock(bool show)
++{
++	m_show_clock = show;
++}
++
++void ui_manager::show_clock_display(render_container *container)
++{
++       char buf[20];
++       time_t ltime;
++       struct tm *today;
++       float line_height = get_line_height();
++
++       time(&ltime);
++       today = localtime(&ltime);
++
++       sprintf(buf, "%02d:%02d:%02d", today->tm_hour, today->tm_min, today->tm_sec);
++       draw_text_full(container, buf, 0.0f, 1.0f - line_height, 1.0f, JUSTIFY_RIGHT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, nullptr, nullptr);
++}
+ 
+ //-------------------------------------------------
+ //  set_show_profiler - show/hide the profiler
+@@ -1481,6 +1506,11 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
+ 					JUSTIFY_RIGHT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, nullptr, nullptr);
+ 	}
+ 
++	if (machine.ui().show_clock())
++	{
++		machine.ui().show_clock_display(container);
++	}
++
+ 	// Show the duration of current part (intro or gameplay or extra)
+ 	if (machine.ui().show_timecode_counter()) {
+ 		std::string tempstring;
+@@ -1667,6 +1697,19 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
+ 	if (machine.ui_input().pressed(IPT_UI_SHOW_FPS))
+ 		machine.ui().set_show_fps(!machine.ui().show_fps());
+ 
++	// toggle clock display
++	if (machine.ui_input().pressed(IPT_UI_SHOW_CLOCK))
++		machine.ui().set_show_clock(!machine.ui().show_clock());
++
++	// toggle mute
++	if (machine.ui_input().pressed(IPT_UI_MUTE))
++	{
++		static bool muted = true;
++		machine.sound().system_mute(muted);
++		machine.popmessage("Mute %s", muted ? "Enabled" : "Disabled");
++		muted = !muted;
++	}
++
+ 	// increment frameskip?
+ 	if (machine.ui_input().pressed(IPT_UI_FRAMESKIP_INC))
+ 		machine.ui().increase_frameskip();
+diff --git a/src/emu/ui/ui.h b/src/emu/ui/ui.h
+index 8639c1f..b0331e5 100644
+--- a/src/emu/ui/ui.h
++++ b/src/emu/ui/ui.h
+@@ -148,6 +148,9 @@ public:
+ 	void set_show_fps(bool show);
+ 	bool show_fps() const;
+ 	bool show_fps_counter();
++	void set_show_clock(bool show);
++	bool show_clock() const;
++	void show_clock_display(render_container *container);
+ 	void set_show_profiler(bool show);
+ 	bool show_profiler() const;
+ 	void show_menu();
+@@ -199,6 +202,7 @@ private:
+ 	std::unique_ptr<UINT8[]> m_non_char_keys_down;
+ 	render_texture *        m_mouse_arrow_texture;
+ 	bool                    m_mouse_show;
++	bool                    m_show_clock;
+ 	bool                    m_show_timecode_counter;
+ 	bool                    m_show_timecode_total;
+ 	bool                    m_load_save_hold;
+-- 
+2.8.0
+

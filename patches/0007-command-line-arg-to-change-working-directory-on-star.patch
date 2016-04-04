@@ -1,0 +1,189 @@
+From 3f8a8f209ab8d2949099a9416f745fff39841412 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Fri, 1 Apr 2016 17:25:59 +0000
+Subject: [PATCH 07/17] command line arg to change working directory on startup
+
+---
+ src/emu/clifront.cpp               | 19 +++++++++++++++++++
+ src/emu/clifront.h                 |  1 +
+ src/emu/cliopts.cpp                |  1 +
+ src/emu/cliopts.h                  |  3 +++
+ src/osd/modules/file/posixfile.cpp | 10 ++++++++++
+ src/osd/modules/file/winfile.cpp   | 12 ++++++++++++
+ src/osd/osdcore.h                  |  3 +++
+ src/osd/osdmini/minimisc.cpp       |  8 ++++++++
+ 8 files changed, 57 insertions(+)
+
+diff --git a/src/emu/clifront.cpp b/src/emu/clifront.cpp
+index 8889ab9..e0e8679 100644
+--- a/src/emu/clifront.cpp
++++ b/src/emu/clifront.cpp
+@@ -105,6 +105,8 @@ int cli_frontend::execute(int argc, char **argv)
+ 		std::string option_errors;
+ 		m_options.parse_command_line(argc, argv, option_errors);
+ 
++		change_working_directory();
++
+ 		m_options.parse_standard_inis(option_errors);
+ 
+ 		//load_translation();
+@@ -1716,6 +1718,7 @@ void cli_frontend::display_help()
+ 			"        %s -showconfig   for a list of configuration options\n"
+ 			"        %s -listmedia    for a full list of supported media\n"
+ 			"        %s -createconfig to create a %s.ini\n\n"
++			"           -chdir        change working directory on startup\n\n"
+ 			"For usage instructions, please consult the files config.txt and windows.txt.\n",emulator_info::get_appname(),
+ 			emulator_info::get_appname(),emulator_info::get_appname(),emulator_info::get_appname(),emulator_info::get_configname());
+ }
+@@ -1730,6 +1733,22 @@ void cli_frontend::display_suggestions(const char *gamename)
+ {
+ }
+ 
++//-------------------------------------------------
++//  change_working_directory
++//  helper for initial startup (cli_frontend::execute)
++//-------------------------------------------------
++void cli_frontend::change_working_directory()
++{
++	if (*(m_options.chdir_path()) != 0)
++	{
++		if (osd_chdir(m_options.chdir_path()) != 0)
++			throw emu_fatalerror(MAMERR_FATALERROR, "Failed to change working directory '%s'", m_options.chdir_path());
++	}
++
++	// never save option
++	m_options.set_flag(CLIOPTION_CHDIR, ~OPTION_FLAG_INTERNAL, OPTION_FLAG_INTERNAL);
++}
++
+ 
+ //**************************************************************************
+ //  MEDIA IDENTIFIER
+diff --git a/src/emu/clifront.h b/src/emu/clifront.h
+index 5842616..c5aa40f 100644
+--- a/src/emu/clifront.h
++++ b/src/emu/clifront.h
+@@ -62,6 +62,7 @@ private:
+ 	void display_help();
+ 	void display_suggestions(const char *gamename);
+ 	void output_single_softlist(FILE *out, software_list_device &swlist);
++	void change_working_directory();
+ 
+ 	// internal state
+ 	cli_options &       m_options;
+diff --git a/src/emu/cliopts.cpp b/src/emu/cliopts.cpp
+index ba2cb33..2854e84 100644
+--- a/src/emu/cliopts.cpp
++++ b/src/emu/cliopts.cpp
+@@ -19,6 +19,7 @@ const options_entry cli_options::s_option_entries[] =
+ 	{ nullptr,                            nullptr,       OPTION_HEADER,     "CORE COMMANDS" },
+ 	{ CLICOMMAND_HELP ";h;?",           "0",       OPTION_COMMAND,    "show help message" },
+ 	{ CLICOMMAND_VALIDATE ";valid",     "0",       OPTION_COMMAND,    "perform driver validation on all game drivers" },
++	{ CLIOPTION_CHDIR ";cd",        nullptr,       OPTION_STRING,     "change to directory on startup" },
+ 
+ 	/* configuration commands */
+ 	{ nullptr,                            nullptr,       OPTION_HEADER,     "CONFIGURATION COMMANDS" },
+diff --git a/src/emu/cliopts.h b/src/emu/cliopts.h
+index ce0cb7a..810b527 100644
+--- a/src/emu/cliopts.h
++++ b/src/emu/cliopts.h
+@@ -22,6 +22,7 @@
+ // core commands
+ #define CLICOMMAND_HELP                 "help"
+ #define CLICOMMAND_VALIDATE             "validate"
++#define CLIOPTION_CHDIR                 "chdir"
+ 
+ // configuration commands
+ #define CLICOMMAND_CREATECONFIG         "createconfig"
+@@ -60,6 +61,8 @@ public:
+ 	// construction/destruction
+ 	cli_options();
+ 
++	const char *chdir_path() const { return value(CLIOPTION_CHDIR); }
++
+ private:
+ 	static const options_entry s_option_entries[];
+ };
+diff --git a/src/osd/modules/file/posixfile.cpp b/src/osd/modules/file/posixfile.cpp
+index 8c3d286..faf4a96 100644
+--- a/src/osd/modules/file/posixfile.cpp
++++ b/src/osd/modules/file/posixfile.cpp
+@@ -445,6 +445,16 @@ const char *osd_get_volume_name(int idx)
+ 		return nullptr;
+ 	}
+ 
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(std::string const &path)
++{
++	std::string path_expanded;
++	osd_subst_env(path_expanded, path);
++	int retval = chdir(path_expanded.c_str());
++	return retval;
++}
+ 
+ //============================================================
+ //  errno_to_file_error
+diff --git a/src/osd/modules/file/winfile.cpp b/src/osd/modules/file/winfile.cpp
+index 9695aac..1591c05 100644
+--- a/src/osd/modules/file/winfile.cpp
++++ b/src/osd/modules/file/winfile.cpp
+@@ -29,6 +29,7 @@
+ #include <stdlib.h>
+ #include <ctype.h>
+ 
++#include <direct.h>
+ 
+ namespace {
+ //============================================================
+@@ -461,6 +462,17 @@ const char *osd_get_volume_name(int idx)
+ }
+ 
+ 
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(std::string const &path)
++{
++	std::string path_expanded;
++	osd_subst_env(path_expanded, path);
++	int retval = _chdir(path_expanded.c_str());
++	return retval;
++}
++
+ 
+ //============================================================
+ //  win_error_to_file_error
+diff --git a/src/osd/osdcore.h b/src/osd/osdcore.h
+index 899f024..aaeb446 100644
+--- a/src/osd/osdcore.h
++++ b/src/osd/osdcore.h
+@@ -880,6 +880,9 @@ const char *osd_get_volume_name(int idx);
+ -----------------------------------------------------------------------------*/
+ void osd_subst_env(std::string &dst,std::string const &src);
+ 
++/* change working directory */
++int osd_chdir(std::string const &path);
++
+ /* ----- output management ----- */
+ 
+ // output channels
+diff --git a/src/osd/osdmini/minimisc.cpp b/src/osd/osdmini/minimisc.cpp
+index fb4901c..d3f71fc 100644
+--- a/src/osd/osdmini/minimisc.cpp
++++ b/src/osd/osdmini/minimisc.cpp
+@@ -107,3 +107,11 @@ void osd_subst_env(std::string &dst, const std::string &src)
+ {
+ 	dst = src;
+ }
++
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(const char *path)
++{
++	return chdir(path);
++}
+-- 
+2.8.0
+

@@ -1,0 +1,180 @@
+From b357b0c2be67f2ec2b76091aae312dd216beb082 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Fri, 1 Apr 2016 17:18:05 +0000
+Subject: [PATCH 06/17] options to skip messages and remove white border
+
+---
+ src/emu/emuopts.cpp |  3 +++
+ src/emu/emuopts.h   |  6 ++++++
+ src/emu/machine.cpp |  3 ++-
+ src/emu/render.cpp  | 12 ++++++++++--
+ src/emu/render.h    |  2 ++
+ src/emu/romload.cpp |  3 +++
+ src/emu/ui/ui.cpp   |  3 ++-
+ src/emu/video.cpp   |  2 +-
+ 8 files changed, 29 insertions(+), 5 deletions(-)
+
+diff --git a/src/emu/emuopts.cpp b/src/emu/emuopts.cpp
+index 8816eec..790892b 100644
+--- a/src/emu/emuopts.cpp
++++ b/src/emu/emuopts.cpp
+@@ -194,6 +194,9 @@ const options_entry emu_options::s_option_entries[] =
+ 	{ OPTION_BIOS,                                       nullptr,        OPTION_STRING,     "select the system BIOS to use" },
+ 	{ OPTION_CHEAT ";c",                                 "0",         OPTION_BOOLEAN,    "enable cheat subsystem" },
+ 	{ OPTION_SKIP_GAMEINFO,                              "0",         OPTION_BOOLEAN,    "skip displaying the information screen at startup" },
++	{ OPTION_SKIP_WARNINGS,                              "0",         OPTION_BOOLEAN,    "skip warning screen" },
++	{ OPTION_SKIP_LOADING,                               "0",         OPTION_BOOLEAN,    "skip loading screen" },
++	{ OPTION_RENDER_BORDER,                              "0",         OPTION_BOOLEAN,    "render white border around UI screens" },
+ 	{ OPTION_UI_FONT,                                    "default",   OPTION_STRING,     "specify a font to use" },
+ 	{ OPTION_UI,                                         "cabinet",   OPTION_STRING,     "type of UI (simple|cabinet)" },
+ 	{ OPTION_RAMSIZE ";ram",                             nullptr,        OPTION_STRING,     "size of RAM (if supported by driver)" },
+diff --git a/src/emu/emuopts.h b/src/emu/emuopts.h
+index d37c760..c684b0d 100644
+--- a/src/emu/emuopts.h
++++ b/src/emu/emuopts.h
+@@ -187,6 +187,9 @@ enum
+ #define OPTION_BIOS                 "bios"
+ #define OPTION_CHEAT                "cheat"
+ #define OPTION_SKIP_GAMEINFO        "skip_gameinfo"
++#define OPTION_SKIP_WARNINGS        "skip_warnings"
++#define OPTION_SKIP_LOADING         "skip_loading"
++#define OPTION_RENDER_BORDER        "render_border"
+ #define OPTION_UI_FONT              "uifont"
+ #define OPTION_UI                   "ui"
+ #define OPTION_RAMSIZE              "ramsize"
+@@ -381,6 +384,9 @@ public:
+ 	const char *bios() const { return value(OPTION_BIOS); }
+ 	bool cheat() const { return bool_value(OPTION_CHEAT); }
+ 	bool skip_gameinfo() const { return bool_value(OPTION_SKIP_GAMEINFO); }
++	bool skip_warnings() const { return bool_value(OPTION_SKIP_WARNINGS); }
++	bool skip_loading() const { return bool_value(OPTION_SKIP_LOADING); }
++	bool render_border() const { return bool_value(OPTION_RENDER_BORDER); }
+ 	const char *ui_font() const { return value(OPTION_UI_FONT); }
+ 	const char *ui() const { return value(OPTION_UI); }
+ 	const char *ram_size() const { return value(OPTION_RAMSIZE); }
+diff --git a/src/emu/machine.cpp b/src/emu/machine.cpp
+index d2eb3b5..a9a48e5 100644
+--- a/src/emu/machine.cpp
++++ b/src/emu/machine.cpp
+@@ -282,7 +282,8 @@ void running_machine::start()
+ 	// call the game driver's init function
+ 	// this is where decryption is done and memory maps are altered
+ 	// so this location in the init order is important
+-	ui().set_startup_text("Initializing...", true);
++	if (!options().skip_loading())
++		ui().set_startup_text("Initializing...", true);
+ 
+ 	// register callbacks for the devices, then start them
+ 	add_notifier(MACHINE_NOTIFY_RESET, machine_notify_delegate(FUNC(running_machine::reset_all_devices), this));
+diff --git a/src/emu/render.cpp b/src/emu/render.cpp
+index 89fadf5..aec6c44 100644
+--- a/src/emu/render.cpp
++++ b/src/emu/render.cpp
+@@ -1312,6 +1312,11 @@ void render_target::compute_minimum_size(INT32 &minwidth, INT32 &minheight)
+ 
+ render_primitive_list &render_target::get_primitives()
+ {
++	return get_primitives(false);
++}
++
++render_primitive_list &render_target::get_primitives(bool include_ui)
++{
+ 	// remember the base values if this is the first frame
+ 	if (m_base_view == nullptr)
+ 		m_base_view = m_curview;
+@@ -1377,7 +1382,7 @@ render_primitive_list &render_target::get_primitives()
+ 		}
+ 
+ 	// if we are not in the running stage, draw an outer box
+-	else
++	else if (m_draw_outer_box)
+ 	{
+ 		render_primitive *prim = list.alloc(render_primitive::QUAD);
+ 		set_render_bounds_xy(&prim->bounds, 0.0f, 0.0f, (float)m_width, (float)m_height);
+@@ -1415,7 +1420,7 @@ render_primitive_list &render_target::get_primitives()
+ 	}
+ 
+ 	// process the UI if we are the UI target
+-	if (is_ui_target())
++	if (is_ui_target() || include_ui)
+ 	{
+ 		// compute the transform for the UI
+ 		object_transform ui_xform;
+@@ -1529,6 +1534,9 @@ void render_target::resolve_tags()
+ 			view->resolve_tags();
+ 		}
+ 	}
++
++	// white box
++	m_draw_outer_box = m_manager.machine().options().render_border();
+ }
+ 
+ 
+diff --git a/src/emu/render.h b/src/emu/render.h
+index 92761b4..a1b3558 100644
+--- a/src/emu/render.h
++++ b/src/emu/render.h
+@@ -947,6 +947,7 @@ public:
+ 
+ 	// get a primitive list
+ 	render_primitive_list &get_primitives();
++	render_primitive_list &get_primitives(bool include_ui);
+ 
+ 	// hit testing
+ 	bool map_point_container(INT32 target_x, INT32 target_y, render_container &container, float &container_x, float &container_y);
+@@ -1012,6 +1013,7 @@ private:
+ 	layout_view *           m_base_view;                // the view at the time of first frame
+ 	int                     m_base_orientation;         // the orientation at the time of first frame
+ 	render_layer_config     m_base_layerconfig;         // the layer configuration at the time of first frame
++	bool                    m_draw_outer_box;           // white box
+ 	int                     m_maxtexwidth;              // maximum width of a texture
+ 	int                     m_maxtexheight;             // maximum height of a texture
+ 	simple_list<render_container> m_debug_containers;   // list of debug containers
+diff --git a/src/emu/romload.cpp b/src/emu/romload.cpp
+index 45cbeec..89a24cb 100644
+--- a/src/emu/romload.cpp
++++ b/src/emu/romload.cpp
+@@ -463,6 +463,9 @@ void rom_load_manager::display_loading_rom_message(const char *name, bool from_l
+ {
+ 	char buffer[200];
+ 
++	if (machine().options().skip_loading())
++		return;
++
+ 	if (name != nullptr)
+ 		sprintf(buffer, "%s (%d%%)", from_list ? "Loading Software" : "Loading Machine", (UINT32)(100 * (UINT64)m_romsloadedsize / (UINT64)m_romstotalsize));
+ 	else
+diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
+index 7c54e67..c4cbf7e 100644
+--- a/src/emu/ui/ui.cpp
++++ b/src/emu/ui/ui.cpp
+@@ -390,11 +390,12 @@ void ui_manager::display_startup_screens(bool first_time)
+ 			case 0:
+ 				if (show_warnings && warnings_string(messagebox_text).length() > 0)
+ 				{
+-					set_handler(handler_messagebox_anykey, 0);
+ 					if (machine().system().flags & (MACHINE_WRONG_COLORS | MACHINE_IMPERFECT_COLORS | MACHINE_REQUIRES_ARTWORK | MACHINE_IMPERFECT_GRAPHICS | MACHINE_IMPERFECT_SOUND | MACHINE_IMPERFECT_KEYBOARD | MACHINE_NO_SOUND))
+ 						messagebox_backcolor = UI_YELLOW_COLOR;
+ 					if (machine().system().flags & (MACHINE_NOT_WORKING | MACHINE_UNEMULATED_PROTECTION | MACHINE_MECHANICAL))
+ 						messagebox_backcolor = UI_RED_COLOR;
++					if (messagebox_backcolor == UI_RED_COLOR || !machine().options().skip_warnings())
++						set_handler(handler_messagebox_anykey, 0);
+ 				}
+ 				break;
+ 
+diff --git a/src/emu/video.cpp b/src/emu/video.cpp
+index a0057ca..5946ff0 100644
+--- a/src/emu/video.cpp
++++ b/src/emu/video.cpp
+@@ -1140,7 +1140,7 @@ void video_manager::create_snapshot_bitmap(screen_device *screen)
+ 		m_snap_bitmap.allocate(width, height);
+ 
+ 	// render the screen there
+-	render_primitive_list &primlist = m_snap_target->get_primitives();
++	render_primitive_list &primlist = m_snap_target->get_primitives(true);
+ 	primlist.acquire_lock();
+ 	if (machine().options().snap_bilinear())
+ 		snap_renderer_bilinear::draw_primitives(primlist, &m_snap_bitmap.pix32(0), width, height, m_snap_bitmap.rowpixels());
+-- 
+2.8.0
+

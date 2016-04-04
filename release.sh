@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# error handling setup
+set -o nounset -o pipefail -o errtrace
+
+error() {
+	local lc="$BASH_COMMAND" rc=$?
+	echo "ERROR in $0 : line $1 exit code $2"
+	echo "      [$lc]"
+	exit $2
+}
+trap 'error ${LINENO} ${?}' ERR
+
+# override commands
+function echo() {
+    command echo $(date +"[%d-%h-%Y %H:%M:%S %Z]") "$*"
+}
+function pushd() {
+    command pushd "$@" >/dev/null
+}
+function popd() {
+    command popd "$@" >/dev/null
+}
+
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_PATH}" ]) then
+	while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd .
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd
+
+RELEASE=$(git describe --tag --abbrev=0 | sed 's/mame\(.\)/\1./')
+
+echo Begin packaging UXME ${RELEASE} ...
+
+echo Remove old release directories ...
+rm -rf build/*/release build/release
+
+# recursively assemble binary packages
+for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
+	for ARCH in $(ls -1d build/${BUILD}/bin/* | sed 's/.*\/\([^\/]*\)$/\1/'); do
+		for TYPE in $(ls -1 build/${BUILD}/bin/${ARCH}); do
+			echo Assembling $BUILD $ARCH $TYPE
+			RELEASENAME="uxme"
+			if [[ ${ARCH} == x64 ]]; then
+				RELEASENAME="${RELEASENAME}64"
+			fi
+			if [[ ${TYPE} == Debug ]]; then
+				RELEASENAME="${RELEASENAME}d"
+			fi
+			RELEASENAME="${RELEASENAME}-${RELEASE}"
+			PACKAGEDIR="`pwd`/build/${BUILD}/release/${ARCH}/${TYPE}/package"
+			BUILDDIR="`pwd`/build/${BUILD}/bin/${ARCH}/${TYPE}"
+			mkdir -p ${PACKAGEDIR}
+			pushd ${BUILDDIR}
+			[ -f *.sym ] && cp *.sym ${PACKAGEDIR}/
+			find . -executable -type f -exec cp "{}" "${PACKAGEDIR}"/ \;
+			popd
+			cp "${SCRIPT_PATH}"/../build/whatsnew/whatsnew_${RELEASE//.}.txt "${PACKAGEDIR}"/whatsnew.txt
+			cp -r docs hash nl_examples samples artwork bgfx hlsl glsl plugins ini uismall.bdf "${PACKAGEDIR}"/
+			find language -name '*.mo' -exec cp --parents {} "${PACKAGEDIR}"/ \;
+			7za -y x "${SCRIPT_PATH}"/../build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
+			echo Packaging ${BUILD} ${ARCH} ${TYPE}
+			#pushd ${PACKAGEDIR}
+			#7za a -mpass=4 -mfb=255 -y -r -tzip ../${RELEASENAME}.zip >/dev/null
+			#popd
+		done
+	done
+done
+
+echo Finished creating release....
