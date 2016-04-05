@@ -32,4 +32,4 @@ git submodule update --init --depth=1
 popd
 
 CPU_COUNT=$(getconf _NPROCESSORS_ONLN)
-LOAD_LIMIT=${NPROC}
+LOAD_LIMIT=${CPU_COUNT}
