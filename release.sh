@@ -1,35 +1,6 @@
 #!/bin/bash
 
-# error handling setup
-set -o nounset -o pipefail -o errtrace
-
-error() {
-	local lc="$BASH_COMMAND" rc=$?
-	echo "ERROR in $0 : line $1 exit code $2"
-	echo "      [$lc]"
-	exit $2
-}
-trap 'error ${LINENO} ${?}' ERR
-
-# override commands
-function echo() {
-    command echo $(date +"[%d-%h-%Y %H:%M:%S %Z]") "$*"
-}
-function pushd() {
-    command pushd "$@" >/dev/null
-}
-function popd() {
-    command popd "$@" >/dev/null
-}
-
-SCRIPT_PATH="${BASH_SOURCE[0]}";
-if ([ -h "${SCRIPT_PATH}" ]) then
-	while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
-fi
-pushd .
-cd `dirname ${SCRIPT_PATH}` > /dev/null
-SCRIPT_PATH=`pwd`;
-popd
+source "${BASH_SOURCE%/*}"/support/common.sh || exit 1
 
 RELEASE=$(git describe --tag | sed 's/mame//')
 LASTVER=$(git describe --tag --abbrev=0 | sed 's/mame//')
@@ -66,8 +37,10 @@ for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
 			pushd ${PACKAGEDIR}
 			if [[ ${BUILD} == mingw* ]] || [[ ${BUILD} == vs* ]]; then
 				7za a -mx=9 -y -r -t7z -sfx"${SCRIPT_PATH}"/support/7zWin32.sfx "${OUTPATH}"/${RELEASENAME}.exe >/dev/null
+				md5sum "${OUTPATH}"/${RELEASENAME}.exe > "${OUTPATH}"/${RELEASENAME}.md5
 			else
 				7za a -mpass=4 -mfb=255 -y -r -tzip "${OUTPATH}"/${RELEASENAME}.zip >/dev/null
+				md5sum "${OUTPATH}"/${RELEASENAME}.zip > "${OUTPATH}"/${RELEASENAME}.md5
 			fi
 			popd
 		done
