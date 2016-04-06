@@ -25,7 +25,7 @@ if ([ -h "${SCRIPT_PATH}" ]) then
 	while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
 fi
 pushd .
-cd `dirname ${SCRIPT_PATH}` > /dev/null
+cd `dirname ${SCRIPT_PATH}`/.. > /dev/null
 SCRIPT_PATH=`pwd`;
 
 git submodule update --init --depth=1

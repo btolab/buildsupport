@@ -12,8 +12,7 @@ if [[ ! -z $(git status --porcelain) ]]; then
 fi
 
 # apply patches
-patches=("${SCRIPT_PATH}"/patches/*.patch)
-if [ ${#patches[@]} -gt 0 ]; then
+if [ -n "$(find "${SCRIPT_PATH}/patches" -name '*.patch' -prune)" ]; then
 	echo "Applying buildbot patches"
 	git am --signoff "${SCRIPT_PATH}"/patches/*.patch
 
