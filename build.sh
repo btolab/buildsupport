@@ -13,7 +13,7 @@ fi
 
 # apply patches
 patches=("${SCRIPT_PATH}"/patches/*.patch)
-if [ ${#files[@]} -gt 0 ]; then
+if [ ${#patches[@]} -gt 0 ]; then
 	echo "Applying buildbot patches"
 	git am --signoff "${SCRIPT_PATH}"/patches/*.patch
 
