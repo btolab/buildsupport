@@ -27,6 +27,20 @@ fi
 
 echo "Build: ${CPU_COUNT} jobs, ${LOAD_LIMIT} load limit"
 
-echo "Windows 32-bit master:"
+echo "Windows 64-bit master:"
 
-make TARGETOS=windows TOOLCHAIN=i686-w64-mingw32.static- TARGET=mame TOOLS=1 SEPARATE_BIN=1 STRIP_SYMBOLS=1 OPTIMIZE=3 SYMBOLS=1 SYMLEVEL=1 REGENIE=1 SHELLTYPE=posix PRECOMPILE=0 -j${CPU_COUNT} -l${LOAD_LIMIT} | awk 'BEGIN { x = ""; } { if ($1 != x) { print("\n" $0); } else { print("") } x = $1; }' ORS='.'
+make TARGETOS=windows \
+     TOOLCHAIN=x86_64-w64-mingw32.static- \
+     TARGET=mame \
+     TOOLS=1 \
+     SEPARATE_BIN=1 \
+     STRIP_SYMBOLS=1 \
+     OPTIMIZE=3 \
+     SYMBOLS=1 \
+     SYMLEVEL=1 \
+     REGENIE=1 \
+     SHELLTYPE=posix \
+     PTR64=1 \
+     PRECOMPILE=0 \
+     -j${CPU_COUNT} -l${LOAD_LIMIT} \
+     | awk 'BEGIN { x = ""; } { if ($1 != x) { print("\n" $0); } else { print("") } x = $1; }' ORS='.'
