@@ -28,7 +28,7 @@ pushd .
 cd `dirname ${SCRIPT_PATH}`/.. > /dev/null
 SCRIPT_PATH=`pwd`;
 
-git submodule update --init --depth=1
+git clone --depth=1 https://github.com/mamedev/build.git
 popd
 
 CPU_COUNT=$(getconf _NPROCESSORS_ONLN)

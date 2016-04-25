@@ -1,4 +1,0 @@
-[submodule "build"]
-	path = build
-	url = https://github.com/mamedev/build.git
-	branch = master
