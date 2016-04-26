@@ -28,7 +28,13 @@ pushd .
 cd `dirname ${SCRIPT_PATH}`/.. > /dev/null
 SCRIPT_PATH=`pwd`;
 
-git clone --depth=1 https://github.com/mamedev/build.git
+if [ -d build ]; then
+    pushd build
+    git pull
+    popd
+else
+    git clone --depth=1 https://github.com/mamedev/build.git
+fi
 popd
 
 CPU_COUNT=$(getconf _NPROCESSORS_ONLN)
