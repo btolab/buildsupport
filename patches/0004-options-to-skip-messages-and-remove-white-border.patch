@@ -1,24 +1,22 @@
-From b357b0c2be67f2ec2b76091aae312dd216beb082 Mon Sep 17 00:00:00 2001
+From 8ad6e2b42ef5d83dd03f44fa4968b2a6b4af916e Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
-Date: Fri, 1 Apr 2016 17:18:05 +0000
-Subject: [PATCH 06/17] options to skip messages and remove white border
+Date: Sat, 30 Apr 2016 23:13:55 -0500
+Subject: [PATCH 04/11] options to skip messages and remove white border
 
 ---
- src/emu/emuopts.cpp |  3 +++
- src/emu/emuopts.h   |  6 ++++++
- src/emu/machine.cpp |  3 ++-
- src/emu/render.cpp  | 12 ++++++++++--
- src/emu/render.h    |  2 ++
- src/emu/romload.cpp |  3 +++
- src/emu/ui/ui.cpp   |  3 ++-
- src/emu/video.cpp   |  2 +-
- 8 files changed, 29 insertions(+), 5 deletions(-)
+ src/emu/emuopts.cpp            | 3 +++
+ src/emu/emuopts.h              | 6 ++++++
+ src/emu/render.cpp             | 5 ++++-
+ src/emu/render.h               | 1 +
+ src/frontend/mame/ui/submenu.h | 3 +++
+ src/frontend/mame/ui/ui.cpp    | 6 +++++-
+ 6 files changed, 22 insertions(+), 2 deletions(-)
 
 diff --git a/src/emu/emuopts.cpp b/src/emu/emuopts.cpp
-index 8816eec..790892b 100644
+index 180de1a..b55af2b 100644
 --- a/src/emu/emuopts.cpp
 +++ b/src/emu/emuopts.cpp
-@@ -194,6 +194,9 @@ const options_entry emu_options::s_option_entries[] =
+@@ -190,6 +190,9 @@ const options_entry emu_options::s_option_entries[] =
  	{ OPTION_BIOS,                                       nullptr,        OPTION_STRING,     "select the system BIOS to use" },
  	{ OPTION_CHEAT ";c",                                 "0",         OPTION_BOOLEAN,    "enable cheat subsystem" },
  	{ OPTION_SKIP_GAMEINFO,                              "0",         OPTION_BOOLEAN,    "skip displaying the information screen at startup" },
@@ -29,10 +27,10 @@ index 8816eec..790892b 100644
  	{ OPTION_UI,                                         "cabinet",   OPTION_STRING,     "type of UI (simple|cabinet)" },
  	{ OPTION_RAMSIZE ";ram",                             nullptr,        OPTION_STRING,     "size of RAM (if supported by driver)" },
 diff --git a/src/emu/emuopts.h b/src/emu/emuopts.h
-index d37c760..c684b0d 100644
+index 900d162..867b48a 100644
 --- a/src/emu/emuopts.h
 +++ b/src/emu/emuopts.h
-@@ -187,6 +187,9 @@ enum
+@@ -165,6 +165,9 @@
  #define OPTION_BIOS                 "bios"
  #define OPTION_CHEAT                "cheat"
  #define OPTION_SKIP_GAMEINFO        "skip_gameinfo"
@@ -42,7 +40,7 @@ index d37c760..c684b0d 100644
  #define OPTION_UI_FONT              "uifont"
  #define OPTION_UI                   "ui"
  #define OPTION_RAMSIZE              "ramsize"
-@@ -381,6 +384,9 @@ public:
+@@ -347,6 +350,9 @@ public:
  	const char *bios() const { return value(OPTION_BIOS); }
  	bool cheat() const { return bool_value(OPTION_CHEAT); }
  	bool skip_gameinfo() const { return bool_value(OPTION_SKIP_GAMEINFO); }
@@ -52,37 +50,11 @@ index d37c760..c684b0d 100644
  	const char *ui_font() const { return value(OPTION_UI_FONT); }
  	const char *ui() const { return value(OPTION_UI); }
  	const char *ram_size() const { return value(OPTION_RAMSIZE); }
-diff --git a/src/emu/machine.cpp b/src/emu/machine.cpp
-index d2eb3b5..a9a48e5 100644
---- a/src/emu/machine.cpp
-+++ b/src/emu/machine.cpp
-@@ -282,7 +282,8 @@ void running_machine::start()
- 	// call the game driver's init function
- 	// this is where decryption is done and memory maps are altered
- 	// so this location in the init order is important
--	ui().set_startup_text("Initializing...", true);
-+	if (!options().skip_loading())
-+		ui().set_startup_text("Initializing...", true);
- 
- 	// register callbacks for the devices, then start them
- 	add_notifier(MACHINE_NOTIFY_RESET, machine_notify_delegate(FUNC(running_machine::reset_all_devices), this));
 diff --git a/src/emu/render.cpp b/src/emu/render.cpp
-index 89fadf5..aec6c44 100644
+index 22f23d3..b43d3e3 100644
 --- a/src/emu/render.cpp
 +++ b/src/emu/render.cpp
-@@ -1312,6 +1312,11 @@ void render_target::compute_minimum_size(INT32 &minwidth, INT32 &minheight)
- 
- render_primitive_list &render_target::get_primitives()
- {
-+	return get_primitives(false);
-+}
-+
-+render_primitive_list &render_target::get_primitives(bool include_ui)
-+{
- 	// remember the base values if this is the first frame
- 	if (m_base_view == nullptr)
- 		m_base_view = m_curview;
-@@ -1377,7 +1382,7 @@ render_primitive_list &render_target::get_primitives()
+@@ -1384,7 +1384,7 @@ render_primitive_list &render_target::get_primitives()
  		}
  
  	// if we are not in the running stage, draw an outer box
@@ -91,17 +63,8 @@ index 89fadf5..aec6c44 100644
  	{
  		render_primitive *prim = list.alloc(render_primitive::QUAD);
  		set_render_bounds_xy(&prim->bounds, 0.0f, 0.0f, (float)m_width, (float)m_height);
-@@ -1415,7 +1420,7 @@ render_primitive_list &render_target::get_primitives()
- 	}
- 
- 	// process the UI if we are the UI target
--	if (is_ui_target())
-+	if (is_ui_target() || include_ui)
- 	{
- 		// compute the transform for the UI
- 		object_transform ui_xform;
-@@ -1529,6 +1534,9 @@ void render_target::resolve_tags()
- 			view->resolve_tags();
+@@ -1536,6 +1536,9 @@ void render_target::resolve_tags()
+ 			view.resolve_tags();
  		}
  	}
 +
@@ -111,18 +74,10 @@ index 89fadf5..aec6c44 100644
  
  
 diff --git a/src/emu/render.h b/src/emu/render.h
-index 92761b4..a1b3558 100644
+index ccc0c5f..b87ca98 100644
 --- a/src/emu/render.h
 +++ b/src/emu/render.h
-@@ -947,6 +947,7 @@ public:
- 
- 	// get a primitive list
- 	render_primitive_list &get_primitives();
-+	render_primitive_list &get_primitives(bool include_ui);
- 
- 	// hit testing
- 	bool map_point_container(INT32 target_x, INT32 target_y, render_container &container, float &container_x, float &container_y);
-@@ -1012,6 +1013,7 @@ private:
+@@ -1024,6 +1024,7 @@ private:
  	layout_view *           m_base_view;                // the view at the time of first frame
  	int                     m_base_orientation;         // the orientation at the time of first frame
  	render_layer_config     m_base_layerconfig;         // the layer configuration at the time of first frame
@@ -130,25 +85,25 @@ index 92761b4..a1b3558 100644
  	int                     m_maxtexwidth;              // maximum width of a texture
  	int                     m_maxtexheight;             // maximum height of a texture
  	simple_list<render_container> m_debug_containers;   // list of debug containers
-diff --git a/src/emu/romload.cpp b/src/emu/romload.cpp
-index 45cbeec..89a24cb 100644
---- a/src/emu/romload.cpp
-+++ b/src/emu/romload.cpp
-@@ -463,6 +463,9 @@ void rom_load_manager::display_loading_rom_message(const char *name, bool from_l
- {
- 	char buffer[200];
+diff --git a/src/frontend/mame/ui/submenu.h b/src/frontend/mame/ui/submenu.h
+index be095c7..4d2028a 100644
+--- a/src/frontend/mame/ui/submenu.h
++++ b/src/frontend/mame/ui/submenu.h
+@@ -70,6 +70,9 @@ static std::vector<ui_submenu::option> misc_submenu_options = {
+ 	{ ui_submenu::UI,   __("Use image as background"),                 OPTION_USE_BACKGROUND },
+ 	{ ui_submenu::UI,   __("Skip bios selection menu"),                OPTION_SKIP_BIOS_MENU },
+ 	{ ui_submenu::UI,   __("Skip software parts selection menu"),      OPTION_SKIP_PARTS_MENU },
++	{ ui_submenu::EMU,  __("Skip warnings"),                           OPTION_SKIP_WARNINGS },
++	{ ui_submenu::EMU,  __("Skip loading"),                            OPTION_SKIP_LOADING },
++	{ ui_submenu::EMU,  __("Render border"),                           OPTION_RENDER_BORDER },
+ 	{ ui_submenu::UI,   __("Info auto audit"),                         OPTION_INFO_AUTO_AUDIT },
+ };
  
-+	if (machine().options().skip_loading())
-+		return;
-+
- 	if (name != nullptr)
- 		sprintf(buffer, "%s (%d%%)", from_list ? "Loading Software" : "Loading Machine", (UINT32)(100 * (UINT64)m_romsloadedsize / (UINT64)m_romstotalsize));
- 	else
-diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
-index 7c54e67..c4cbf7e 100644
---- a/src/emu/ui/ui.cpp
-+++ b/src/emu/ui/ui.cpp
-@@ -390,11 +390,12 @@ void ui_manager::display_startup_screens(bool first_time)
+diff --git a/src/frontend/mame/ui/ui.cpp b/src/frontend/mame/ui/ui.cpp
+index 0359030..ea23715 100644
+--- a/src/frontend/mame/ui/ui.cpp
++++ b/src/frontend/mame/ui/ui.cpp
+@@ -397,11 +397,12 @@ void mame_ui_manager::display_startup_screens(bool first_time)
  			case 0:
  				if (show_warnings && warnings_string(messagebox_text).length() > 0)
  				{
@@ -162,19 +117,16 @@ index 7c54e67..c4cbf7e 100644
  				}
  				break;
  
-diff --git a/src/emu/video.cpp b/src/emu/video.cpp
-index a0057ca..5946ff0 100644
---- a/src/emu/video.cpp
-+++ b/src/emu/video.cpp
-@@ -1140,7 +1140,7 @@ void video_manager::create_snapshot_bitmap(screen_device *screen)
- 		m_snap_bitmap.allocate(width, height);
+@@ -451,6 +452,9 @@ void mame_ui_manager::set_startup_text(const char *text, bool force)
+ 	static osd_ticks_t lastupdatetime = 0;
+ 	osd_ticks_t curtime = osd_ticks();
  
- 	// render the screen there
--	render_primitive_list &primlist = m_snap_target->get_primitives();
-+	render_primitive_list &primlist = m_snap_target->get_primitives(true);
- 	primlist.acquire_lock();
- 	if (machine().options().snap_bilinear())
- 		snap_renderer_bilinear::draw_primitives(primlist, &m_snap_bitmap.pix32(0), width, height, m_snap_bitmap.rowpixels());
++	if (machine().options().skip_loading())
++		return;
++
+ 	// copy in the new text
+ 	messagebox_text.assign(text);
+ 	messagebox_backcolor = UI_BACKGROUND_COLOR;
 -- 
-2.8.0
+2.4.11
 

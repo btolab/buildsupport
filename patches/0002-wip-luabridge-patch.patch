@@ -1,7 +1,7 @@
-From 31928e0a504505489c5c63219b1e3aa76b895c1e Mon Sep 17 00:00:00 2001
+From 9354a0ba42014f456edae543a93f4f427dd3438e Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Wed, 30 Mar 2016 08:24:34 -0500
-Subject: [PATCH 02/17] wip luabridge patch
+Subject: [PATCH 02/11] wip luabridge patch
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
@@ -1155,5 +1155,5 @@ index c066803..0b41b09 100644
  	int i;
  	int top = lua_gettop(L);
 -- 
-2.8.0
+2.4.11
 

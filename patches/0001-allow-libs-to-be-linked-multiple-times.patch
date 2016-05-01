@@ -1,19 +1,19 @@
-From f0f22fb168ee6770e18cb1ac7fd2ee3cf814dd49 Mon Sep 17 00:00:00 2001
+From c74b83031425e89a7acc71cfdbc24b51f8015e44 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sat, 25 Jul 2015 20:08:43 -0500
-Subject: [PATCH 01/17] allow libs to be linked multiple times
+Subject: [PATCH 01/11] allow libs to be linked multiple times
 
 genie filters duplicate links but this is a problem when linking against external static libraries like libsdl with mingw.
 winmm needs to be linked again after sdl because of the way gcc ld works. This patch corrects the chicken-n-egg problem.
 
 Signed-off-by: Jeffrey Clark <dude@zaplabs.com>
 ---
- 3rdparty/genie/src/base/bake.lua    |  8 ++++----
- 3rdparty/genie/src/base/project.lua |  2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ 3rdparty/genie/src/base/bake.lua    | 8 ++++----
+ 3rdparty/genie/src/base/project.lua | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/3rdparty/genie/src/base/bake.lua b/3rdparty/genie/src/base/bake.lua
-index ab50612..f5da62a 100644
+index 90e7909..fe830fb 100644
 --- a/3rdparty/genie/src/base/bake.lua
 +++ b/3rdparty/genie/src/base/bake.lua
 @@ -157,15 +157,15 @@
@@ -45,7 +45,7 @@ index ab50612..f5da62a 100644
  							removes = src.removes[fieldname]
  							if removes then
 diff --git a/3rdparty/genie/src/base/project.lua b/3rdparty/genie/src/base/project.lua
-index 5806757..0312067 100644
+index 76d4199..5193ae8 100644
 --- a/3rdparty/genie/src/base/project.lua
 +++ b/3rdparty/genie/src/base/project.lua
 @@ -380,7 +380,7 @@
@@ -58,5 +58,5 @@ index 5806757..0312067 100644
  				end
  			end
 -- 
-2.8.0
+2.4.11
 

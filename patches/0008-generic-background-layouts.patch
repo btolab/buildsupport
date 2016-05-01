@@ -1,7 +1,7 @@
-From b47ede8820437bfdfe0b18e2614a997d0295cd6a Mon Sep 17 00:00:00 2001
+From 7cf657303b5ad920547a6a1bc16a873654c91d96 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Apr 2016 16:41:31 +0000
-Subject: [PATCH 13/17] generic background layouts
+Subject: [PATCH 08/11] generic background layouts
 
 http://mrdo.mameworld.info/mame_artwork_generic.php
 ---
@@ -36416,5 +36416,5 @@ index 2d66df3..21145f6 100644
  		<screen index="0">
  			<bounds left="0" top="0" right="~scr0height~" bottom="~scr0width~" />
 -- 
-2.8.0
+2.4.11
 

@@ -1,0 +1,41 @@
+From 6db7c76d1c1dd91e82685d6e9dfd260f8f03f1bc Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 1 May 2016 09:52:19 -0500
+Subject: [PATCH 09/11] add SUBTARGETNAME to version string
+
+---
+ scripts/genie.lua | 3 +++
+ src/version.cpp   | 4 ++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/genie.lua b/scripts/genie.lua
+index 3281ca7..5941879 100644
+--- a/scripts/genie.lua
++++ b/scripts/genie.lua
+@@ -1294,6 +1294,9 @@ configuration { "winphone8* or winstore8*" }
+ 
+ 
+ configuration { }
++	defines {
++		"SUBTARGETNAME='\"" .. _OPTIONS["subtarget"] .. "\"'"
++	}
+ 
+ if (_OPTIONS["SOURCES"] ~= nil) then
+ 	OUT_STR = os.outputof( PYTHON .. " " .. MAME_DIR .. "scripts/build/makedep.py " .. MAME_DIR .. " " .. _OPTIONS["SOURCES"] .. " target " .. _OPTIONS["subtarget"])
+diff --git a/src/version.cpp b/src/version.cpp
+index f8c28e4..abc97ab 100644
+--- a/src/version.cpp
++++ b/src/version.cpp
+@@ -16,7 +16,7 @@ const char bare_build_version[] = BARE_BUILD_VERSION;
+ #if defined(GIT_VERSION)
+ #define VERSION_TO_STRING(s) XVERSION_TO_STRING(s)
+ #define XVERSION_TO_STRING(ver) #ver
+-const char build_version[] = BARE_BUILD_VERSION " (" VERSION_TO_STRING(GIT_VERSION) ")";
++const char build_version[] = BARE_BUILD_VERSION " (" SUBTARGETNAME " " VERSION_TO_STRING(GIT_VERSION) ")";
+ #else
+-const char build_version[] = BARE_BUILD_VERSION;
++const char build_version[] = BARE_BUILD_VERSION " (" SUBTARGETNAME ")";
+ #endif
+-- 
+2.4.11
+

@@ -1,0 +1,174 @@
+From 1b8799e45bbaa6daaade2f6b2105a8b402a40320 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <dude@zaplabs.com>
+Date: Sun, 1 May 2016 09:31:15 -0500
+Subject: [PATCH 05/11] command line arg to change working directory on startup
+
+---
+ src/frontend/mame/clifront.cpp      | 24 ++++++++++++++++++++++--
+ src/frontend/mame/clifront.h        |  1 +
+ src/osd/modules/file/posixfile.cpp  | 10 ++++++++++
+ src/osd/modules/file/winfile.cpp    | 12 ++++++++++++
+ src/osd/modules/lib/osdlib_unix.cpp |  7 +++++++
+ src/osd/osdcore.h                   |  3 +++
+ 6 files changed, 55 insertions(+), 2 deletions(-)
+
+diff --git a/src/frontend/mame/clifront.cpp b/src/frontend/mame/clifront.cpp
+index 9d81306..c96d9a6 100644
+--- a/src/frontend/mame/clifront.cpp
++++ b/src/frontend/mame/clifront.cpp
+@@ -40,6 +40,7 @@
+ // core commands
+ #define CLICOMMAND_HELP                 "help"
+ #define CLICOMMAND_VALIDATE             "validate"
++#define CLIOPTION_CHDIR                 "chdir"
+ 
+ // configuration commands
+ #define CLICOMMAND_CREATECONFIG         "createconfig"
+@@ -77,6 +78,7 @@ static const options_entry cli_option_entries[] =
+ 	{ nullptr,                            nullptr,       OPTION_HEADER,     "CORE COMMANDS" },
+ 	{ CLICOMMAND_HELP ";h;?",           "0",       OPTION_COMMAND,    "show help message" },
+ 	{ CLICOMMAND_VALIDATE ";valid",     "0",       OPTION_COMMAND,    "perform driver validation on all game drivers" },
++	{ CLIOPTION_CHDIR ";cd",        nullptr,       OPTION_STRING,     "change to directory on startup" },
+ 
+ 	/* configuration commands */
+ 	{ nullptr,                            nullptr,       OPTION_HEADER,     "CONFIGURATION COMMANDS" },
+@@ -181,6 +183,8 @@ int cli_frontend::execute(int argc, char **argv)
+ 		std::string option_errors;
+ 		mame_options::parse_command_line(m_options,argc, argv, option_errors);
+ 
++		change_working_directory();
++
+ 		mame_options::parse_standard_inis(m_options,option_errors);
+ 
+ 		load_translation(m_options);
+@@ -1779,9 +1783,10 @@ void cli_frontend::display_help(const char *exename)
+ 			"        %s -showusage    for a brief list of options\n"
+ 			"        %s -showconfig   for a list of configuration options\n"
+ 			"        %s -listmedia    for a full list of supported media\n"
+-			"        %s -createconfig to create a %s.ini\n\n"
++			"        %s -createconfig to create a %s.ini\n"
++			"        %s -chdir        change working directory on startup\n\n"
+ 			"For usage instructions, please consult the files config.txt and windows.txt.\n",exename,
+-			exename,exename,exename,emulator_info::get_configname());
++			exename,exename,exename,emulator_info::get_configname(),exename);
+ }
+ 
+ 
+@@ -1794,6 +1799,21 @@ void cli_frontend::display_suggestions(const char *gamename)
+ {
+ }
+ 
++//-------------------------------------------------
++//  change_working_directory
++//  helper for initial startup (cli_frontend::execute)
++//-------------------------------------------------
++void cli_frontend::change_working_directory()
++{
++	if (*(m_options.value(CLIOPTION_CHDIR)) != 0)
++	{
++		if (osd_chdir(m_options.value(CLIOPTION_CHDIR)) != 0)
++			throw emu_fatalerror(EMU_ERR_FATALERROR, "Failed to change working directory '%s'", m_options.value(CLIOPTION_CHDIR));
++	}
++
++	// never save option
++	m_options.set_flag(CLIOPTION_CHDIR, ~OPTION_FLAG_INTERNAL, OPTION_FLAG_INTERNAL);
++}
+ 
+ //**************************************************************************
+ //  MEDIA IDENTIFIER
+diff --git a/src/frontend/mame/clifront.h b/src/frontend/mame/clifront.h
+index 2a7da7f..f1f5d67 100644
+--- a/src/frontend/mame/clifront.h
++++ b/src/frontend/mame/clifront.h
+@@ -62,6 +62,7 @@ private:
+ 	void display_help(const char *exename);
+ 	void display_suggestions(const char *gamename);
+ 	void output_single_softlist(FILE *out, software_list_device &swlist);
++	void change_working_directory();
+ 
+ 	// internal state
+ 	emu_options &       m_options;
+diff --git a/src/osd/modules/file/posixfile.cpp b/src/osd/modules/file/posixfile.cpp
+index 8c3d286..faf4a96 100644
+--- a/src/osd/modules/file/posixfile.cpp
++++ b/src/osd/modules/file/posixfile.cpp
+@@ -445,6 +445,16 @@ const char *osd_get_volume_name(int idx)
+ 		return nullptr;
+ 	}
+ 
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(std::string const &path)
++{
++	std::string path_expanded;
++	osd_subst_env(path_expanded, path);
++	int retval = chdir(path_expanded.c_str());
++	return retval;
++}
+ 
+ //============================================================
+ //  errno_to_file_error
+diff --git a/src/osd/modules/file/winfile.cpp b/src/osd/modules/file/winfile.cpp
+index 9b6ecdc..20e747f 100644
+--- a/src/osd/modules/file/winfile.cpp
++++ b/src/osd/modules/file/winfile.cpp
+@@ -29,6 +29,7 @@
+ #include <stdlib.h>
+ #include <ctype.h>
+ 
++#include <direct.h>
+ 
+ namespace {
+ //============================================================
+@@ -461,6 +462,17 @@ const char *osd_get_volume_name(int idx)
+ }
+ 
+ 
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(std::string const &path)
++{
++	std::string path_expanded;
++	osd_subst_env(path_expanded, path);
++	int retval = _chdir(path_expanded.c_str());
++	return retval;
++}
++
+ 
+ //============================================================
+ //  win_error_to_file_error
+diff --git a/src/osd/modules/lib/osdlib_unix.cpp b/src/osd/modules/lib/osdlib_unix.cpp
+index ea7dd60..a3e5948 100644
+--- a/src/osd/modules/lib/osdlib_unix.cpp
++++ b/src/osd/modules/lib/osdlib_unix.cpp
+@@ -158,4 +158,11 @@ char *osd_get_clipboard_text(void)
+ 	return result;
+ }
+ 
++//============================================================
++//  osd_chdir
++//============================================================
++int osd_chdir(const char *path)
++{
++	return chdir(path);
++}
+ #endif
+diff --git a/src/osd/osdcore.h b/src/osd/osdcore.h
+index c712b3f..faeb89d 100644
+--- a/src/osd/osdcore.h
++++ b/src/osd/osdcore.h
+@@ -875,6 +875,9 @@ const char *osd_get_volume_name(int idx);
+ -----------------------------------------------------------------------------*/
+ void osd_subst_env(std::string &dst,std::string const &src);
+ 
++/* change working directory */
++int osd_chdir(std::string const &path);
++
+ /* ----- output management ----- */
+ 
+ // output channels
+-- 
+2.4.11
+

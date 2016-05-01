@@ -1,21 +1,21 @@
-From 90821b9dff3f315f7488cdf41f02e507653606d0 Mon Sep 17 00:00:00 2001
+From 5c604d87af85131c1024b9f7c459a3b268fa827a Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Apr 2016 16:29:05 +0000
-Subject: [PATCH 11/17] mute toggle input and clock osd
+Subject: [PATCH 06/11] mute toggle input and clock osd
 
 ---
- src/emu/inpttype.h |  2 ++
- src/emu/ioport.h   |  2 ++
- src/emu/sound.cpp  |  2 +-
- src/emu/ui/ui.cpp  | 43 +++++++++++++++++++++++++++++++++++++++++++
- src/emu/ui/ui.h    |  4 ++++
+ src/emu/inpttype.h          |  2 ++
+ src/emu/ioport.h            |  2 ++
+ src/emu/sound.cpp           |  2 +-
+ src/frontend/mame/ui/ui.cpp | 43 +++++++++++++++++++++++++++++++++++++++++++
+ src/frontend/mame/ui/ui.h   |  4 ++++
  5 files changed, 52 insertions(+), 1 deletion(-)
 
 diff --git a/src/emu/inpttype.h b/src/emu/inpttype.h
-index ff2ffbc..b1b0297 100644
+index 605abe0..58816c9 100644
 --- a/src/emu/inpttype.h
 +++ b/src/emu/inpttype.h
-@@ -758,6 +758,8 @@ void construct_core_types_UI(simple_list<input_type_entry> &typelist)
+@@ -862,6 +862,8 @@ inline void construct_core_types_UI(simple_list<input_type_entry> &typelist)
  	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_LOAD_STATE,       "Load State",             input_seq(KEYCODE_F7, input_seq::not_code, KEYCODE_LSHIFT) )
  	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_TAPE_START,       "UI (First) Tape Start",  input_seq(KEYCODE_F2, input_seq::not_code, KEYCODE_LSHIFT) )
  	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_TAPE_STOP,        "UI (First) Tape Stop",   input_seq(KEYCODE_F2, KEYCODE_LSHIFT) )
@@ -25,10 +25,10 @@ index ff2ffbc..b1b0297 100644
  	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_FAVORITES,        "UI Add/Remove favorites",input_seq(KEYCODE_LALT, KEYCODE_F) )
  	INPUT_PORT_DIGITAL_TYPE( 0, UI,      UI_UP_FILTER,        nullptr,                  input_seq() )
 diff --git a/src/emu/ioport.h b/src/emu/ioport.h
-index c7fbd8d..1c14ad5 100644
+index 3f6a018..142ab1b 100644
 --- a/src/emu/ioport.h
 +++ b/src/emu/ioport.h
-@@ -354,6 +354,8 @@ enum ioport_type
+@@ -358,6 +358,8 @@ enum ioport_type
  		IPT_UI_LOAD_STATE,
  		IPT_UI_TAPE_START,
  		IPT_UI_TAPE_STOP,
@@ -38,10 +38,10 @@ index c7fbd8d..1c14ad5 100644
  		IPT_UI_FAVORITES,
  		IPT_UI_UP_FILTER,
 diff --git a/src/emu/sound.cpp b/src/emu/sound.cpp
-index 47e7dcc..b833bf6 100644
+index 0983a5f..fee5ed7 100644
 --- a/src/emu/sound.cpp
 +++ b/src/emu/sound.cpp
-@@ -886,7 +886,7 @@ sound_stream *sound_manager::stream_alloc(device_t &device, int inputs, int outp
+@@ -905,7 +905,7 @@ sound_stream *sound_manager::stream_alloc(device_t &device, int inputs, int outp
  void sound_manager::set_attenuation(int attenuation)
  {
  	m_attenuation = attenuation;
@@ -50,11 +50,11 @@ index 47e7dcc..b833bf6 100644
  }
  
  
-diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
-index c4cbf7e..9e3e25f 100644
---- a/src/emu/ui/ui.cpp
-+++ b/src/emu/ui/ui.cpp
-@@ -23,6 +23,7 @@
+diff --git a/src/frontend/mame/ui/ui.cpp b/src/frontend/mame/ui/ui.cpp
+index ea23715..b813182 100644
+--- a/src/frontend/mame/ui/ui.cpp
++++ b/src/frontend/mame/ui/ui.cpp
+@@ -27,6 +27,7 @@
  #include "ui/sliders.h"
  #include "ui/viewgfx.h"
  #include "imagedev/cassette.h"
@@ -62,29 +62,29 @@ index c4cbf7e..9e3e25f 100644
  #include "image.h"
  
  
-@@ -286,6 +287,7 @@ void ui_manager::init()
- 	m_popup_text_end = 0;
- 	m_use_natural_keyboard = false;
- 	m_mouse_arrow_texture = nullptr;
-+	m_show_clock = false;
- 	m_show_timecode_counter = false;
- 	m_show_timecode_total = false;
- 	m_load_save_hold = false;
-@@ -959,6 +961,29 @@ bool ui_manager::show_fps_counter()
+@@ -274,6 +275,7 @@ mame_ui_manager::mame_ui_manager(running_machine &machine)
+ 		m_single_step(false),
+ 		m_showfps(false),
+ 		m_showfps_end(0),
++		m_show_clock(false),
+ 		m_show_profiler(false),
+ 		m_popup_text_end(0),
+ 		m_mouse_arrow_texture(nullptr),
+@@ -972,6 +974,29 @@ bool mame_ui_manager::show_fps_counter()
  	return result;
  }
  
-+bool ui_manager::show_clock() const
++bool mame_ui_manager::show_clock() const
 +{
 +	return m_show_clock;
 +}
 +
-+void ui_manager::set_show_clock(bool show)
++void mame_ui_manager::set_show_clock(bool show)
 +{
 +	m_show_clock = show;
 +}
 +
-+void ui_manager::show_clock_display(render_container *container)
++void mame_ui_manager::show_clock_display(render_container *container)
 +{
 +       char buf[20];
 +       time_t ltime;
@@ -100,25 +100,25 @@ index c4cbf7e..9e3e25f 100644
  
  //-------------------------------------------------
  //  set_show_profiler - show/hide the profiler
-@@ -1481,6 +1506,11 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
+@@ -1527,6 +1552,11 @@ UINT32 mame_ui_manager::handler_ingame(running_machine &machine, render_containe
  					JUSTIFY_RIGHT, WRAP_WORD, DRAW_OPAQUE, ARGB_WHITE, ARGB_BLACK, nullptr, nullptr);
  	}
  
-+	if (machine.ui().show_clock())
++	if (mame_machine_manager::instance()->ui().show_clock())
 +	{
-+		machine.ui().show_clock_display(container);
++		mame_machine_manager::instance()->ui().show_clock_display(container);
 +	}
 +
  	// Show the duration of current part (intro or gameplay or extra)
- 	if (machine.ui().show_timecode_counter()) {
+ 	if (mame_machine_manager::instance()->ui().show_timecode_counter()) {
  		std::string tempstring;
-@@ -1667,6 +1697,19 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
+@@ -1703,6 +1733,19 @@ UINT32 mame_ui_manager::handler_ingame(running_machine &machine, render_containe
  	if (machine.ui_input().pressed(IPT_UI_SHOW_FPS))
- 		machine.ui().set_show_fps(!machine.ui().show_fps());
+ 		mame_machine_manager::instance()->ui().set_show_fps(!mame_machine_manager::instance()->ui().show_fps());
  
 +	// toggle clock display
 +	if (machine.ui_input().pressed(IPT_UI_SHOW_CLOCK))
-+		machine.ui().set_show_clock(!machine.ui().show_clock());
++		mame_machine_manager::instance()->ui().set_show_clock(!mame_machine_manager::instance()->ui().show_clock());
 +
 +	// toggle mute
 +	if (machine.ui_input().pressed(IPT_UI_MUTE))
@@ -131,12 +131,12 @@ index c4cbf7e..9e3e25f 100644
 +
  	// increment frameskip?
  	if (machine.ui_input().pressed(IPT_UI_FRAMESKIP_INC))
- 		machine.ui().increase_frameskip();
-diff --git a/src/emu/ui/ui.h b/src/emu/ui/ui.h
-index 8639c1f..b0331e5 100644
---- a/src/emu/ui/ui.h
-+++ b/src/emu/ui/ui.h
-@@ -148,6 +148,9 @@ public:
+ 		mame_machine_manager::instance()->ui().increase_frameskip();
+diff --git a/src/frontend/mame/ui/ui.h b/src/frontend/mame/ui/ui.h
+index 29cad32..e269878 100644
+--- a/src/frontend/mame/ui/ui.h
++++ b/src/frontend/mame/ui/ui.h
+@@ -138,6 +138,9 @@ public:
  	void set_show_fps(bool show);
  	bool show_fps() const;
  	bool show_fps_counter();
@@ -146,14 +146,14 @@ index 8639c1f..b0331e5 100644
  	void set_show_profiler(bool show);
  	bool show_profiler() const;
  	void show_menu();
-@@ -199,6 +202,7 @@ private:
- 	std::unique_ptr<UINT8[]> m_non_char_keys_down;
- 	render_texture *        m_mouse_arrow_texture;
- 	bool                    m_mouse_show;
+@@ -176,6 +179,7 @@ private:
+ 	bool                    m_single_step;
+ 	bool                    m_showfps;
+ 	osd_ticks_t             m_showfps_end;
 +	bool                    m_show_clock;
- 	bool                    m_show_timecode_counter;
- 	bool                    m_show_timecode_total;
- 	bool                    m_load_save_hold;
+ 	bool                    m_show_profiler;
+ 	osd_ticks_t             m_popup_text_end;
+ 	std::unique_ptr<UINT8[]> m_non_char_keys_down;
 -- 
-2.8.0
+2.4.11
 

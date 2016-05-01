@@ -1,7 +1,7 @@
-From cd9ec7af0f31427e77f233aa90bb0b0ad1c42308 Mon Sep 17 00:00:00 2001
+From 73e09002ecdbee0789849f889142f7424d39ac8f Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Fri, 1 Apr 2016 16:59:30 +0000
-Subject: [PATCH 05/17] Option to fast forward machine init sequence
+Subject: [PATCH 03/11] Option to fast forward machine init sequence
 
 Options:
     faststart:
@@ -41,24 +41,25 @@ Dat file: faststart.dat
 
 Credit: inspired by similar functionality of AdvanceMame!
 ---
- scripts/src/emu.lua   |   2 +
- src/emu/emuopts.cpp   |   2 +
- src/emu/emuopts.h     |   4 ++
- src/emu/faststart.cpp | 111 ++++++++++++++++++++++++++++++++++++++++++++++++++
- src/emu/faststart.h   |  19 +++++++++
- src/emu/machine.cpp   |   3 ++
- src/emu/ui/ui.cpp     |   2 +-
- src/emu/video.cpp     |   9 +++-
- src/emu/video.h       |   4 ++
- 9 files changed, 154 insertions(+), 2 deletions(-)
+ scripts/src/emu.lua            |   2 +
+ src/emu/emuopts.cpp            |   2 +
+ src/emu/emuopts.h              |   4 ++
+ src/emu/faststart.cpp          | 111 +++++++++++++++++++++++++++++++++++++++++
+ src/emu/faststart.h            |  19 +++++++
+ src/emu/machine.cpp            |   3 ++
+ src/emu/video.cpp              |   9 +++-
+ src/emu/video.h                |   4 ++
+ src/frontend/mame/ui/submenu.h |   2 +
+ src/frontend/mame/ui/ui.cpp    |   2 +-
+ 10 files changed, 156 insertions(+), 2 deletions(-)
  create mode 100644 src/emu/faststart.cpp
  create mode 100644 src/emu/faststart.h
 
 diff --git a/scripts/src/emu.lua b/scripts/src/emu.lua
-index efe30ed..cb47a6b 100644
+index 2fdefe7..8cf7d37 100644
 --- a/scripts/src/emu.lua
 +++ b/scripts/src/emu.lua
-@@ -134,6 +134,8 @@ files {
+@@ -116,6 +116,8 @@ files {
  	MAME_DIR .. "src/emu/emuopts.h",
  	MAME_DIR .. "src/emu/emupal.cpp",
  	MAME_DIR .. "src/emu/emupal.h",
@@ -68,10 +69,10 @@ index efe30ed..cb47a6b 100644
  	MAME_DIR .. "src/emu/fileio.h",
  	MAME_DIR .. "src/emu/hash.cpp",
 diff --git a/src/emu/emuopts.cpp b/src/emu/emuopts.cpp
-index 8db2506..8816eec 100644
+index e7a7d74..180de1a 100644
 --- a/src/emu/emuopts.cpp
 +++ b/src/emu/emuopts.cpp
-@@ -87,6 +87,8 @@ const options_entry emu_options::s_option_entries[] =
+@@ -82,6 +82,8 @@ const options_entry emu_options::s_option_entries[] =
  	{ OPTION_SLEEP,                                      "1",         OPTION_BOOLEAN,    "enable sleeping, which gives time back to other applications when idle" },
  	{ OPTION_SPEED "(0.01-100)",                         "1.0",       OPTION_FLOAT,      "controls the speed of gameplay, relative to realtime; smaller numbers are slower" },
  	{ OPTION_REFRESHSPEED ";rs",                         "0",         OPTION_BOOLEAN,    "automatically adjusts the speed of gameplay to keep the refresh rate lower than the screen" },
@@ -81,10 +82,10 @@ index 8db2506..8816eec 100644
  	// render options
  	{ nullptr,                                              nullptr,        OPTION_HEADER,     "CORE RENDER OPTIONS" },
 diff --git a/src/emu/emuopts.h b/src/emu/emuopts.h
-index 29e76b0..d37c760 100644
+index a47b138..900d162 100644
 --- a/src/emu/emuopts.h
 +++ b/src/emu/emuopts.h
-@@ -97,6 +97,8 @@ enum
+@@ -74,6 +74,8 @@
  #define OPTION_SLEEP                "sleep"
  #define OPTION_SPEED                "speed"
  #define OPTION_REFRESHSPEED         "refreshspeed"
@@ -93,7 +94,7 @@ index 29e76b0..d37c760 100644
  
  // core render options
  #define OPTION_KEEPASPECT           "keepaspect"
-@@ -291,6 +293,8 @@ public:
+@@ -256,6 +258,8 @@ public:
  	bool sleep() const { return m_sleep; }
  	float speed() const { return float_value(OPTION_SPEED); }
  	bool refresh_speed() const { return m_refresh_speed; }
@@ -104,7 +105,7 @@ index 29e76b0..d37c760 100644
  	bool keep_aspect() const { return bool_value(OPTION_KEEPASPECT); }
 diff --git a/src/emu/faststart.cpp b/src/emu/faststart.cpp
 new file mode 100644
-index 0000000..a5e713c
+index 0000000..27a51d6
 --- /dev/null
 +++ b/src/emu/faststart.cpp
 @@ -0,0 +1,111 @@
@@ -145,7 +146,7 @@ index 0000000..a5e713c
 +{
 +	const char *name = machine.system().name;
 +
-+	emu_file f(machine.ui().options().history_path(), OPEN_FLAG_READ);
++	emu_file f(OPEN_FLAG_READ);
 +
 +	if(f.open("faststart", ".dat") == osd_file::error::NONE)
 +	{
@@ -245,18 +246,18 @@ index 0000000..89f0bea
 +
 +#endif	/* __FASTSTART_H__ */
 diff --git a/src/emu/machine.cpp b/src/emu/machine.cpp
-index 726979c..d2eb3b5 100644
+index a11afa2..a0fb107 100644
 --- a/src/emu/machine.cpp
 +++ b/src/emu/machine.cpp
-@@ -84,6 +84,7 @@
+@@ -80,6 +80,7 @@
+ #include "debug/debugvw.h"
  #include "image.h"
- #include "luaengine.h"
  #include "network.h"
 +#include "faststart.h"
  #include <time.h>
  
  #if defined(EMSCRIPTEN)
-@@ -344,6 +345,8 @@ int running_machine::run(bool firstrun)
+@@ -309,6 +310,8 @@ int running_machine::run(bool quiet)
  		// load the configuration settings and NVRAM
  		m_configuration->load_settings();
  
@@ -265,24 +266,11 @@ index 726979c..d2eb3b5 100644
  		// disallow save state registrations starting here.
  		// Don't do it earlier, config load can create network
  		// devices with timers.
-diff --git a/src/emu/ui/ui.cpp b/src/emu/ui/ui.cpp
-index 0b15f24..7c54e67 100644
---- a/src/emu/ui/ui.cpp
-+++ b/src/emu/ui/ui.cpp
-@@ -1699,7 +1699,7 @@ UINT32 ui_manager::handler_ingame(running_machine &machine, render_container *co
- 		machine.video().set_fastforward(true);
- 		machine.ui().show_fps_temp(0.5);
- 	}
--	else
-+	else if (!machine.video().faststart())
- 		machine.video().set_fastforward(false);
- 
- 	return 0;
 diff --git a/src/emu/video.cpp b/src/emu/video.cpp
-index c3090bc..a0057ca 100644
+index 8ff9207..6056e83 100644
 --- a/src/emu/video.cpp
 +++ b/src/emu/video.cpp
-@@ -88,6 +88,8 @@ video_manager::video_manager(running_machine &machine)
+@@ -87,6 +87,8 @@ video_manager::video_manager(running_machine &machine)
  		m_throttled(machine.options().throttle()),
  		m_throttle_rate(1.0f),
  		m_fastforward(false),
@@ -291,7 +279,7 @@ index c3090bc..a0057ca 100644
  		m_seconds_to_run(machine.options().seconds_to_run()),
  		m_auto_frameskip(machine.options().auto_frameskip()),
  		m_speed(original_speed_setting()),
-@@ -211,7 +213,12 @@ void video_manager::frame_update(bool debug)
+@@ -210,7 +212,12 @@ void video_manager::frame_update(bool debug)
  	bool skipped_it = m_skipping_this_frame;
  	if (phase == MACHINE_PHASE_RUNNING && (!machine().paused() || machine().options().update_in_pause()))
  	{
@@ -334,6 +322,32 @@ index 019b2b0..259b4d8 100644
  	UINT32              m_seconds_to_run;           // number of seconds to run before quitting
  	bool                m_auto_frameskip;           // flag: TRUE if we're automatically frameskipping
  	UINT32              m_speed;                    // overall speed (*1000)
+diff --git a/src/frontend/mame/ui/submenu.h b/src/frontend/mame/ui/submenu.h
+index 535de30..be095c7 100644
+--- a/src/frontend/mame/ui/submenu.h
++++ b/src/frontend/mame/ui/submenu.h
+@@ -82,6 +82,8 @@ static std::vector<ui_submenu::option> advanced_submenu_options = {
+ 	{ ui_submenu::EMU,  __("Sleep"),                                   OPTION_SLEEP },
+ 	{ ui_submenu::EMU,  __("Speed"),                                   OPTION_SPEED },
+ 	{ ui_submenu::EMU,  __("Refresh speed"),                           OPTION_REFRESHSPEED },
++	{ ui_submenu::EMU,  __("Fast start"),                              OPTION_FASTSTART },
++	{ ui_submenu::EMU,  __("Fast start skip"),                         OPTION_FASTSTART_SKIP },
+ 
+ 	{ ui_submenu::HEAD, __("Rotation Options") },
+ 	{ ui_submenu::EMU,  __("Rotate"),                                  OPTION_ROTATE },
+diff --git a/src/frontend/mame/ui/ui.cpp b/src/frontend/mame/ui/ui.cpp
+index 031013a..0359030 100644
+--- a/src/frontend/mame/ui/ui.cpp
++++ b/src/frontend/mame/ui/ui.cpp
+@@ -1732,7 +1732,7 @@ UINT32 mame_ui_manager::handler_ingame(running_machine &machine, render_containe
+ 		machine.video().set_fastforward(true);
+ 		mame_machine_manager::instance()->ui().show_fps_temp(0.5);
+ 	}
+-	else
++	else if (!machine.video().faststart())
+ 		machine.video().set_fastforward(false);
+ 
+ 	return 0;
 -- 
-2.8.0
+2.4.11
 

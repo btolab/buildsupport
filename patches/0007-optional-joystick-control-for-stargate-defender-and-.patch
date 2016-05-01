@@ -1,7 +1,7 @@
-From 3a1c1856d7cf49b8226b288aca2d39869b302307 Mon Sep 17 00:00:00 2001
+From 035eca7a74fbe8f961216dece338b34b29c96cbc Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Apr 2016 16:38:17 +0000
-Subject: [PATCH 12/17] optional joystick control for stargate, defender and
+Subject: [PATCH 07/11] optional joystick control for stargate, defender and
  battlezone
 
 ---
@@ -49,7 +49,7 @@ index daf378e..baeabfd 100644
  	MCFG_SOUND_ROUTE_EX(0, "discrete", 1.0, 0)
  
 diff --git a/src/mame/drivers/bzone.cpp b/src/mame/drivers/bzone.cpp
-index e3b43d4..380197d 100644
+index 787b891..c291de0 100644
 --- a/src/mame/drivers/bzone.cpp
 +++ b/src/mame/drivers/bzone.cpp
 @@ -417,15 +417,26 @@ static INPUT_PORTS_START( bzone )
@@ -84,7 +84,7 @@ index e3b43d4..380197d 100644
  INPUT_PORTS_END
  
 diff --git a/src/mame/drivers/williams.cpp b/src/mame/drivers/williams.cpp
-index 70f35c2..8f9b4b7 100644
+index 42617e7..844d684 100644
 --- a/src/mame/drivers/williams.cpp
 +++ b/src/mame/drivers/williams.cpp
 @@ -725,10 +725,12 @@ static INPUT_PORTS_START( defender )
@@ -325,5 +325,5 @@ index 9f6a861..5736315 100644
   *
   *************************************/
 -- 
-2.8.0
+2.4.11
 

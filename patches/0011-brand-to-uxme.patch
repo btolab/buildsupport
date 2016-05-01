@@ -1,7 +1,7 @@
-From 24d3fdc5001956001f28b6796eca57f21b27bd84 Mon Sep 17 00:00:00 2001
+From 2f8dd9e0e8d55a5dd1557261373b9e6234051c67 Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Apr 2016 19:14:09 +0000
-Subject: [PATCH 16/17] brand to uxme
+Subject: [PATCH 11/11] brand to uxme
 
 ---
  scripts/build/verinfo.py       | 24 ++++++++++++------------
@@ -53,10 +53,10 @@ index a73d8ad..43f1211 100644
  
  legal_copyright = "Copyright Nicola Salmoria and the MAME team"
 diff --git a/scripts/target/mame/arcade.lua b/scripts/target/mame/arcade.lua
-index f5df5c7..4aae017 100644
+index ca5fc78..e7846a7 100644
 --- a/scripts/target/mame/arcade.lua
 +++ b/scripts/target/mame/arcade.lua
-@@ -662,6 +662,9 @@ BUSES["VECTREX"] = true
+@@ -667,6 +667,9 @@ BUSES["VECTREX"] = true
  --------------------------------------------------
  
  function linkProjects_mame_arcade(_target, _subtarget)
@@ -79,10 +79,10 @@ index b736048..d6aad57 100644
 +		targetname("uxme")
  end
 diff --git a/scripts/target/mame/mess.lua b/scripts/target/mame/mess.lua
-index 4f5c1ec..45cf3f4 100644
+index a4ebde0..7d4cd49 100644
 --- a/scripts/target/mame/mess.lua
 +++ b/scripts/target/mame/mess.lua
-@@ -681,6 +681,9 @@ BUSES["ZORRO"] = true
+@@ -688,6 +688,9 @@ BUSES["ZORRO"] = true
  -- the list of drivers
  --------------------------------------------------
  function linkProjects_mame_mess(_target, _subtarget)
@@ -138,5 +138,5 @@ index 160f777..4a54b9c 100644
  #define COPYRIGHT_INFO          "Copyright Nicola Salmoria and the MAME team"
  
 -- 
-2.8.0
+2.4.11
 

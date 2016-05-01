@@ -1,18 +1,18 @@
-From 351204548c7851aaf9c45a01db720b9d3f565943 Mon Sep 17 00:00:00 2001
+From 23bb26cf61cbc5798534d26c34a097c51991108d Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <dude@zaplabs.com>
 Date: Sun, 3 Apr 2016 16:46:31 +0000
-Subject: [PATCH 15/17] luaengine api extension
+Subject: [PATCH 10/11] luaengine api extension
 
 ---
- src/emu/luaengine.cpp | 28 ++++++++++++++++++++++++++++
- src/emu/luaengine.h   |  2 ++
+ src/frontend/mame/luaengine.cpp | 28 ++++++++++++++++++++++++++++
+ src/frontend/mame/luaengine.h   |  2 ++
  2 files changed, 30 insertions(+)
 
-diff --git a/src/emu/luaengine.cpp b/src/emu/luaengine.cpp
-index 18ae017..921cba8 100644
---- a/src/emu/luaengine.cpp
-+++ b/src/emu/luaengine.cpp
-@@ -897,6 +897,25 @@ int lua_engine::lua_screen::l_orientation(lua_State *L)
+diff --git a/src/frontend/mame/luaengine.cpp b/src/frontend/mame/luaengine.cpp
+index 2d5d458..1c11f20 100644
+--- a/src/frontend/mame/luaengine.cpp
++++ b/src/frontend/mame/luaengine.cpp
+@@ -1314,6 +1314,25 @@ int lua_engine::lua_screen::l_orientation(lua_State *L)
  }
  
  //-------------------------------------------------
@@ -38,7 +38,7 @@ index 18ae017..921cba8 100644
  //  screen_refresh - return screen refresh rate
  //  -> manager:machine().screens[":screen"]:refresh()
  //-------------------------------------------------
-@@ -1124,6 +1143,13 @@ void lua_engine::push(lua_State *L, void *p, const char *tname)
+@@ -1566,6 +1585,13 @@ void lua_engine::push(lua_State *L, void *p, const char *tname)
  	lua_setmetatable(L, -2);
  }
  
@@ -52,7 +52,7 @@ index 18ae017..921cba8 100644
  int lua_engine::l_emu_exit(lua_State *L)
  {
  	luaThis->machine().schedule_exit();
-@@ -1450,6 +1476,7 @@ void lua_engine::initialize()
+@@ -2157,6 +2183,7 @@ void lua_engine::initialize()
  			.addCFunction ("start",       l_emu_start )
  			.addCFunction ("pause",       l_emu_pause )
  			.addCFunction ("unpause",     l_emu_unpause )
@@ -60,7 +60,7 @@ index 18ae017..921cba8 100644
  			.addCFunction ("register_prestart", l_emu_register_prestart )
  			.addCFunction ("register_start", l_emu_register_start )
  			.addCFunction ("register_stop",  l_emu_register_stop )
-@@ -1671,6 +1698,7 @@ void lua_engine::initialize()
+@@ -2412,6 +2439,7 @@ void lua_engine::initialize()
  				.addCFunction ("draw_box",  &lua_screen::l_draw_box)
  				.addCFunction ("draw_line", &lua_screen::l_draw_line)
  				.addCFunction ("draw_text", &lua_screen::l_draw_text)
@@ -68,11 +68,11 @@ index 18ae017..921cba8 100644
  				.addCFunction ("height", &lua_screen::l_height)
  				.addCFunction ("width", &lua_screen::l_width)
  				.addCFunction ("orientation", &lua_screen::l_orientation)
-diff --git a/src/emu/luaengine.h b/src/emu/luaengine.h
-index b98b959..7e070ba 100644
---- a/src/emu/luaengine.h
-+++ b/src/emu/luaengine.h
-@@ -115,6 +115,7 @@ private:
+diff --git a/src/frontend/mame/luaengine.h b/src/frontend/mame/luaengine.h
+index 0f18cb9..48d6a2d 100644
+--- a/src/frontend/mame/luaengine.h
++++ b/src/frontend/mame/luaengine.h
+@@ -133,6 +133,7 @@ private:
  	static int l_emu_pause(lua_State *L);
  	static int l_emu_unpause(lua_State *L);
  	static int l_emu_set_hook(lua_State *L);
@@ -80,7 +80,7 @@ index b98b959..7e070ba 100644
  	static int l_emu_register_prestart(lua_State *L);
  	static int l_emu_register_start(lua_State *L);
  	static int l_emu_register_stop(lua_State *L);
-@@ -145,6 +146,7 @@ private:
+@@ -175,6 +176,7 @@ private:
  	struct lua_screen {
  		int l_height(lua_State *L);
  		int l_width(lua_State *L);
@@ -89,5 +89,5 @@ index b98b959..7e070ba 100644
  		int l_refresh(lua_State *L);
  		int l_type(lua_State *L);
 -- 
-2.8.0
+2.4.11
 
