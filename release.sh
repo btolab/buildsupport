@@ -2,8 +2,8 @@
 
 source "${BASH_SOURCE%/*}"/support/common.sh || exit 1
 
-RELEASE=$(git describe --tag | sed 's/mame//')
-LASTVER=$(git describe --tag --abbrev=0 | sed 's/mame//')
+RELEASE=$(git describe --tag | sed 's/hbmame//')
+LASTVER=$(git describe --tag --abbrev=0 | sed 's/hbmame//')
 OUTPATH=`pwd`
 
 echo Begin packaging ${RELEASE} ...
@@ -16,7 +16,7 @@ for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
 	for ARCH in $(ls -1d build/${BUILD}/bin/* | sed 's/.*\/\([^\/]*\)$/\1/'); do
 		for TYPE in $(ls -1 build/${BUILD}/bin/${ARCH}); do
 			echo Assembling $BUILD $ARCH $TYPE
-			RELEASENAME="mame-${BUILD}-${ARCH}"
+			RELEASENAME="hbmame-${BUILD}-${ARCH}"
 			if [[ ${TYPE} == Debug ]]; then
 				RELEASENAME="${RELEASENAME}-debug"
 			fi
@@ -25,14 +25,15 @@ for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
 			BUILDDIR="`pwd`/build/${BUILD}/bin/${ARCH}/${TYPE}"
 			mkdir -p ${PACKAGEDIR}
 			pushd ${BUILDDIR}
-			[ -f *.sym ] && cp *.sym ${PACKAGEDIR}/
+			#[ -f *.sym ] && cp *.sym ${PACKAGEDIR}/
 			find . -executable -type f -exec cp "{}" "${PACKAGEDIR}"/ \;
 			popd
-			cp "${SCRIPT_PATH}"/build/whatsnew/whatsnew_${LASTVER}.txt "${PACKAGEDIR}"/whatsnew.txt
-			"${SCRIPT_PATH}"/support/output-changelog-md.sh > "${PACKAGEDIR}"/changelog.txt
-			cp -r docs hash nl_examples samples artwork bgfx hlsl plugins ini uismall.bdf "${PACKAGEDIR}"/
-			find language -name '*.mo' -exec cp --parents {} "${PACKAGEDIR}"/ \;
-			7za -y x "${SCRIPT_PATH}"/build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
+			#cp "${SCRIPT_PATH}"/build/whatsnew/whatsnew_${LASTVER}.txt "${PACKAGEDIR}"/whatsnew.txt
+			#"${SCRIPT_PATH}"/support/output-changelog-md.sh > "${PACKAGEDIR}"/changelog.txt
+			cp -r docs/release/docs/hb*.txt "${PACKAGEDIR}"/
+			echo "Hbmame will not work properly without files included with mame.\r\nCopy hbmame into an existing mame installation folder." >> "${PACKAGEDIR}"/HOWTOUSE.txt
+			#find language -name '*.mo' -exec cp --parents {} "${PACKAGEDIR}"/ \;
+			#7za -y x "${SCRIPT_PATH}"/build/mamedirs.zip -o${PACKAGEDIR}/ >/dev/null
 			echo Packaging ${BUILD} ${ARCH} ${TYPE}
 			pushd ${PACKAGEDIR}
 			if [[ ${BUILD} == mingw* ]] || [[ ${BUILD} == vs* ]]; then

@@ -31,8 +31,8 @@ echo "Windows 64-bit master:"
 
 make TARGETOS=windows \
      TOOLCHAIN=x86_64-w64-mingw32.static- \
-     TARGET=mame \
-     TOOLS=1 \
+     TARGET=hbmame \
+     TOOLS=0 \
      SEPARATE_BIN=1 \
      STRIP_SYMBOLS=1 \
      OPTIMIZE=3 \
