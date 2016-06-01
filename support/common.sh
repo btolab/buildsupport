@@ -39,3 +39,8 @@ popd
 
 CPU_COUNT=$(getconf _NPROCESSORS_ONLN)
 LOAD_LIMIT=${CPU_COUNT}
+
+OS=linux
+if [ "$OS" = "Windows_NT" ]; then
+	OS=windows
+fi

@@ -25,7 +25,7 @@ for BUILD in $(ls -1d build/*/bin | sed 's/.*\/\(.*\)\/bin$/\1/'); do
 			BUILDDIR="`pwd`/build/${BUILD}/bin/${ARCH}/${TYPE}"
 			mkdir -p ${PACKAGEDIR}
 			pushd ${BUILDDIR}
-			[ -f *.sym ] && cp *.sym ${PACKAGEDIR}/
+			find . \( -iname '*.pdb' -o -iname '*.sym' \) -exec cp '{}' "${PACKAGEDIR}"/ \;
 			find . -executable -type f -exec cp "{}" "${PACKAGEDIR}"/ \;
 			popd
 			cp "${SCRIPT_PATH}"/build/whatsnew/whatsnew_${LASTVER}.txt "${PACKAGEDIR}"/whatsnew.txt
