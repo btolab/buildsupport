@@ -40,8 +40,12 @@ popd
 CPU_COUNT=$(getconf _NPROCESSORS_ONLN)
 LOAD_LIMIT=${CPU_COUNT}
 
-if [ "$OS" = "Windows_NT" ]; then
-	HOSTOS=windows
-else
+if [ -z ${OS+x} ]; then
 	HOSTOS=linux
+else
+	if [ "$OS" = "Windows_NT" ]; then
+		HOSTOS=windows
+	else
+		HOSTOS=$OS
+	fi
 fi
