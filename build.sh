@@ -19,7 +19,7 @@ if [ -n "$(find "${SCRIPT_PATH}/patches" -name '*.patch' -prune)" ]; then
 	echo "Re/build genie"
 	make genie >/dev/null
 	pushd 3rdparty/genie/src
-	../bin/${OS}/genie embed >/dev/null
+	../bin/${HOSTOS}/genie embed >/dev/null
 	popd
 	make genieclean >/dev/null
 	make genie >/dev/null
@@ -31,7 +31,7 @@ if [ "x$1" = "xvs2015" ]; then
 	echo "Windows 64-bit master (VS2015):"
 	export PreferredToolArchitecture=x64
 	export MINGW64=$MINGW_PREFIX
-	make TARGET=mame MSBUILD=1 SEPARATE_BIN=1 PTR64=1 vs2015 -j${CPU_COUNT} -l${LOAD_LIMIT}
+	make TARGET=mame MSBUILD=1 PTR64=1 SEPARATE_BIN=1 vs2015 -j${CPU_COUNT}
 else
 	echo "Windows 64-bit master (GCC):"
 	make TARGETOS=windows \
@@ -47,6 +47,5 @@ else
 	     SHELLTYPE=posix \
 	     PTR64=1 \
 	     PRECOMPILE=0 \
-	     -j${CPU_COUNT} -l${LOAD_LIMIT} \
-	     | awk 'BEGIN { x = ""; } { if ($1 != x) { print("\n" $0); } else { print("") } x = $1; }' ORS='.'
+	     -j${CPU_COUNT} -l${LOAD_LIMIT}
 fi
