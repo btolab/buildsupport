@@ -1,0 +1,25 @@
+From 853ca6550f3597e855ac021514aa5bf25f775b39 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <h0tw1r3@users.noreply.github.com>
+Date: Wed, 29 Jun 2016 17:49:37 +0000
+Subject: [PATCH 3/3] android strip SDL lib (nw)
+
+---
+ scripts/src/3rdparty.lua | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/scripts/src/3rdparty.lua b/scripts/src/3rdparty.lua
+index d8e6c9e..f84cebf 100644
+--- a/scripts/src/3rdparty.lua
++++ b/scripts/src/3rdparty.lua
+@@ -1209,6 +1209,8 @@ if _OPTIONS["targetos"]=="android" then
+ 			targetdir(MAME_DIR .. "android-project/app/src/main/libs/x86_64")
+ 		end
+ 	end
++
++	strip()
+ else
+ 	kind "StaticLib"
+ end
+-- 
+2.9.0
+
