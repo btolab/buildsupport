@@ -46,7 +46,7 @@ if [ "x$1" = "xvs2015" ]; then
 	make TARGET=mame MSBUILD=1 PTR64=1 SEPARATE_BIN=1 vs2015 -j${CPU_COUNT}
 elif [ "${BUILD[0]}" = "android" ]; then
 	echo "${BUILD[0]} ${BUILD[1]} master (LLVM):"
-	make TARGET=mame SUBTARGET=tiny OPTIMIZE=1 PRECOMPILE=0 SYMBOLS=1 STRIP_SYMBOLS=1 -j${CPU_COUNT} ${BUILD[0]}-${BUILD[1]}
+	make TARGET=mame OPTIMIZE=1 PRECOMPILE=0 SYMBOLS=1 STRIP_SYMBOLS=1 -j${CPU_COUNT} ${BUILD[0]}-${BUILD[1]}
 	cd android-project && sh ./gradlew assembleRelease
 else
 	echo "Windows 64-bit master (GCC):"
