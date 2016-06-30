@@ -1,0 +1,27 @@
+From fd2b40cc4bfeb09ea9d8713857a45bfc85fe3a41 Mon Sep 17 00:00:00 2001
+From: Jeffrey Clark <h0tw1r3@users.noreply.github.com>
+Date: Thu, 30 Jun 2016 18:01:20 +0000
+Subject: [PATCH 4/4] android fix build netlist header (nw)
+
+Signed-off-by: Jeffrey Clark <h0tw1r3@users.noreply.github.com>
+---
+ scripts/toolchain.lua | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/scripts/toolchain.lua b/scripts/toolchain.lua
+index 0765985..e727eb0 100644
+--- a/scripts/toolchain.lua
++++ b/scripts/toolchain.lua
+@@ -787,6 +787,9 @@ function toolchain(_buildDir, _subDir)
+ 			"$(ANDROID_NDK_ROOT)/sources/android/support/include",
+ 			"$(ANDROID_NDK_ROOT)/sources/android/native_app_glue",
+ 		}
++		defines {
++			"__STDC_CONSTANT_MACROS",
++		}
+ 		linkoptions {
+ 			"-nostdlib",
+ 		}
+-- 
+2.9.0
+

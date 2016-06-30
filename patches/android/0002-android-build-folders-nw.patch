@@ -1,9 +1,8 @@
 From 2502a497c7c3d3c2740fdbf04a8fdda37ca736cd Mon Sep 17 00:00:00 2001
 From: Jeffrey Clark <h0tw1r3@users.noreply.github.com>
 Date: Wed, 29 Jun 2016 17:31:40 +0000
-Subject: [PATCH 2/3] android build folders (nw)
+Subject: [PATCH 2/4] android build folders (nw)
 
-Signed-off-by: Jeffrey Clark <h0tw1r3@users.noreply.github.com>
 ---
  scripts/toolchain.lua | 10 ++++++++--
  1 file changed, 8 insertions(+), 2 deletions(-)
