@@ -1,6 +1,6 @@
 # *Unofficial* [HBMAME] nightly build for Windows
 
-[![Build Status](https://build.btolab.com/bot/png?builder=mame-windows&size=large)][buildw64]
+[![Build Status](https://build.btolab.com/bot/png?builder=hbmame-mingw64&size=large)][buildw64]
 
 * Compiled nightly from official [source].
 * Cross compiled on [ArchLinux] for Windows using [MXE].
